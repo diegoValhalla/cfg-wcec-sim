@@ -1,0 +1,12 @@
+* Find and keep edges from CFG worst case and its WCEC
+* Find and keep edges from CFG best case and its WCEC
+* Find and keep edges from a CFG path where its WCEC is less than the worst and
+  greater than the best
+* Do the simulation in all CFG paths by applying Valentin's idea of optimum
+  frequencies and Korean's idea to change intra-task frequency. Output the
+  following informations:
+    - finished time;
+    - total of cycles consumed;
+    - total of energy spent;
+    - used frequencies in order of appearance;
+    - cycles consumed, time and energy spent by each frequency.
