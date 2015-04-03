@@ -1,5 +1,3 @@
-* Find and keep edges from CFG worst case and its WCEC
-* Find and keep edges from CFG best case and its WCEC
 * Find and keep edges from a CFG path where its WCEC is less than the worst and
   greater than the best
 * Do the simulation in all CFG paths by applying Valentin's idea of optimum
