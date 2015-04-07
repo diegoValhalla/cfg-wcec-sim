@@ -20,19 +20,32 @@ def run(filename):
 
     # get worst path
     wpath = cfgpaths.find_worst_path(graph)
-    sys.stdout.write('RWCEC: ' + str(wpath[0]) + '\n')
+    sys.stdout.write('RWCEC: ' + str(wpath.get_path_rwcec()) + '\n')
     sys.stdout.write('Path: ')
-    for node in wpath[1]:
+    for node in wpath.get_path():
         sys.stdout.write(str(node.get_start_line()) + ', ')
     sys.stdout.write('\n')
 
     # get best path
     bpath = cfgpaths.find_best_path(graph)
-    sys.stdout.write('RWCEC: ' + str(bpath[0]) + '\n')
+    sys.stdout.write('RWCEC: ' + str(bpath.get_path_rwcec()) + '\n')
     sys.stdout.write('Path: ')
-    for node in bpath[1]:
+    for node in bpath.get_path():
         sys.stdout.write(str(node.get_start_line()) + ', ')
     sys.stdout.write('\n')
+
+    # get middle path
+    while True:
+        mpath = cfgpaths.find_mid_path(graph, wpath.get_path_rwcec(),
+                bpath.get_path_rwcec())
+        if mpath is None:
+            break
+        sys.stdout.write('RWCEC: ' + str(mpath.get_path_rwcec()) + '\n')
+        sys.stdout.write('Path: ')
+        for node in mpath.get_path():
+            sys.stdout.write(str(node.get_start_line()) + ', ')
+        sys.stdout.write('\n')
+        wpath = mpath
 
 
 if __name__ == '__main__':
