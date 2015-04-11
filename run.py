@@ -22,7 +22,7 @@ def run(filename):
     wpath = cfgpaths.find_worst_path(graph)
     sys.stdout.write('RWCEC: ' + str(wpath.get_path_rwcec()) + '\n')
     sys.stdout.write('Path: ')
-    for node in wpath.get_path():
+    for node, wcec in wpath.get_path():
         sys.stdout.write(str(node.get_start_line()) + ', ')
     sys.stdout.write('\n')
 
@@ -30,7 +30,7 @@ def run(filename):
     bpath = cfgpaths.find_best_path(graph)
     sys.stdout.write('RWCEC: ' + str(bpath.get_path_rwcec()) + '\n')
     sys.stdout.write('Path: ')
-    for node in bpath.get_path():
+    for node, wcec in bpath.get_path():
         sys.stdout.write(str(node.get_start_line()) + ', ')
     sys.stdout.write('\n')
 
@@ -42,7 +42,7 @@ def run(filename):
             break
         sys.stdout.write('RWCEC: ' + str(mpath.get_path_rwcec()) + '\n')
         sys.stdout.write('Path: ')
-        for node in mpath.get_path():
+        for node, wcec in mpath.get_path():
             sys.stdout.write(str(node.get_start_line()) + ', ')
         sys.stdout.write('\n')
         wpath = mpath

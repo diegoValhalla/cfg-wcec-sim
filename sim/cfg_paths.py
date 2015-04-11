@@ -7,6 +7,12 @@ from cfg.cfg_nodes import CFGNodeType, CFGEntryNode, CFGNode
 
 
 class CFGPath(object):
+    """ Hold path RWCEC and all nodes that made it
+
+        Args:
+            rwcec (int): RWCEC of the given path
+            path (list): list whose elements are tuple(node, node-wcec)
+    """
     def __init__(self, rwcec, path):
         self._rwcec = rwcec
         self._path = list(path)
@@ -36,8 +42,8 @@ class CFGPaths(object):
 
         cfg_path = None
         for entry in graph.get_entry_nodes():
-            path = []
             start_node = entry.get_func_first_node()
+            path = [(start_node, start_node.get_wcec())]
             rwcec = self._find_worst_path(start_node, path)
             cfg_path = CFGPath(rwcec, path)
         return cfg_path
@@ -78,9 +84,8 @@ class CFGPaths(object):
 
         cfg_path = None
         for entry in graph.get_entry_nodes():
-            start_node = entry.get_func_first_node()
-            cfg_path = None
             path = []
+            start_node = entry.get_func_first_node()
             cfg_path = self._find_mid_path(start_node, path,
                     start_node.get_wcec(), upper_rwcec, lower_rwcec, 0)
         return cfg_path
@@ -100,7 +105,7 @@ class CFGPaths(object):
         """
         if not isinstance(n, CFGNode): return 0
 
-        path.append(n)
+        path.append((n, n.get_wcec()))
         next_node = None
         for child in n.get_children():
             if next_node == None or child.get_rwcec() > next_node.get_rwcec():
@@ -109,7 +114,10 @@ class CFGPaths(object):
         if next_node is None:
             return n.get_wcec()
         elif n.get_type() == CFGNodeType.PSEUDO:
-            return n.get_refnode_rwcec() + self._find_worst_path(next_node, path)
+            path.remove((n, n.get_wcec()))
+            path.append((n, n.get_refnode_rwcec()))
+            return (n.get_refnode_rwcec() +
+                    self._find_worst_path(next_node, path))
 
         return n.get_wcec() + self._find_worst_path(next_node, path)
 
@@ -135,7 +143,7 @@ class CFGPaths(object):
         """
         if not isinstance(n, CFGNode): return 0
 
-        path.append(n)
+        path.append((n, n.get_wcec()))
         next_node = None
         for child in n.get_children():
             if next_node == None or child.get_rwcec() < next_node.get_rwcec():
@@ -176,13 +184,14 @@ class CFGPaths(object):
         """
         if not isinstance(n, CFGNode): return
 
-        tmp_path = None
-        cfg_path = None
-        path.append(n) # make path
+        tmp_path = cfg_path = None
         for child in n.get_children():
             if child.get_type() != CFGNodeType.PSEUDO:
+                data = (child, child.get_wcec())
+                path.append(data)
                 tmp_path = self._find_mid_path(child, path,
                         newrwcec + child.get_wcec(), urwcec, lrwcec, bestrwcec)
+                path.remove(data)
             else:
                 for i in range(1, child.get_loop_iters() + 1):
                     if i <= child.get_loop_iters():
@@ -192,8 +201,12 @@ class CFGPaths(object):
                         loop_wcec = int(math.ceil(loop_wcec))
                     else: # there is no loop iteration
                         loop_wcec = child.get_wcec()
+
+                    data = (child, loop_wcec)
+                    path.append(data)
                     tmp_path = self._find_mid_path(child, path,
                             newrwcec + loop_wcec, urwcec, lrwcec, bestrwcec)
+                    path.remove(data)
 
                     # set the greatest cfg path by exploring each loop iteration
                     if (tmp_path is not None
@@ -218,5 +231,4 @@ class CFGPaths(object):
             if newrwcec > bestrwcec and lrwcec < newrwcec and newrwcec < urwcec:
                 cfg_path = CFGPath(newrwcec, path)
 
-        path.remove(n)
         return cfg_path
