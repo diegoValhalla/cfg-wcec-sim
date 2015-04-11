@@ -24,8 +24,8 @@ class SimDVFS(object):
         """
         self._curfreq = init_freq
         for i in range(0, len(path)):
-            n = path[i]
-            self._cycles_consumed += n.get_wcec()
+            n, wcec = path[i]
+            self._cycles_consumed += wcec
             if i + 1 < len(path): # check if n is not last node
                 child = path[i + 1]
                 if (n.get_type() == CFGNodeType.IF
@@ -33,6 +33,10 @@ class SimDVFS(object):
                     self._check_typeB_edge(n, child)
                 elif n.get_type() == CFGNodeType.PSEUDO:
                     self._check_typeL_edge(n, child)
+
+        # store last information
+        if self._cycles_consumed != 0:
+            self._update_data(self._curfreq)
 
     def _check_typeB_edge(self, n, child):
         """ Check if current child has a RWCEC less than the greatest RWCEC of
@@ -50,20 +54,53 @@ class SimDVFS(object):
         rwcec_succbi = n.get_rwcec() - n.get_wcec()
         rwcec_bj = child.get_rwcec()
         bjline = child.get_start_line()
-        if _rwcec_bj < rwcec_succbi:
+        if rwcec_bj < rwcec_succbi:
             ratio = self._compute_typeB_sur(rwcec_succbi, rwcec_bj)
             self._change_freq(ratio)
 
     def _compute_typeB_sur(self, rwcec_wsbi, rwcec_bj):
-        if rwcec_wsbi - overhead <= 0:
+        if rwcec_wsbi - self._typeB_overhead <= 0:
             return 1
-        return rwcec_bj / (rwcec_wsbi - self._typeB_overhead)
+        return float(rwcec_bj) / (rwcec_wsbi - self._typeB_overhead)
+
+    def _check_typeL_edge(self, n, loop_wcec, child):
+        """ Get loop information from current node and child and add DVFS code
+
+            Args:
+                n (CFGNode): current node being visited
+                child (CFGNode): child of n
+        """
+        loop_max_iter = n.get_loop_iters()
+        loop_after_line = child.get_start_line()
+        loop_after_rwcec = child.get_rwcec()
+        if loop_max_iter != 0:
+            loop_wcec_once = ((n.get_refnode_rwcec() - n.get_wcec()) /
+                                loop_max_iter)
+        else:
+            loop_wcec_once = n.get_refnode_rwcec()
+        runtime_iter = (loop_wcec - n.get_wcec()) / loop_wcec_once
+
+        ratio = self._compute_typeB_sur(loop_wcec_once, loop_after_rwcec,
+                loop_max_iter, runtime_iter)
+        self._change_freq(ratio)
+
+    def _compute_typeL_sur(self, loop_wcec_once, loop_after_rwcec,
+                loop_max_iter, runtime_iter):
+        saved = self._compute_typeL_cycles_saved()
+        if loop_after_rwcec + saved - self._typeL_overhead <= 0:
+            return 1
+        return (float(loop_after_rwcec) /
+                (loop_after_rwcec + saved - self._typeL_overhead))
+
+    def _compute_typeL_cycles_saved(self, loop_wcec_once, loop_max_iter,
+            runtime_iter):
+        return loop_wcec_once * (loop_max_iter - runtime_iter)
 
     def _change_freq(self, ratio):
         if ratio >= 1: return
         newfreq = self._curfreq * ratio
         newfreq = math.ceil(newfreq)
-        if newfreq < self._curfreq: # check if it is possible to change freq
+        if newfreq < self._curfreq:
             set_freq = 0
             for freq in self._freqs_available: # check for an available freq
                 if freq >= newfreq and (set_freq == 0 or freq <= set_freq):
@@ -77,33 +114,6 @@ class SimDVFS(object):
         self._curfreq = newfreq
         self._cycles_consumed = 0
 
-    def _check_typeL_edge(self, n, child):
-        """ Get loop information from current node and child and add DVFS code
-
-            Args:
-                n (CFGNode): current node being visited
-                child (CFGNode): child of n
-        """
-        if n.get_loop_iters() != 0:
-            loop_wcec_once = n.get_refnode_rwcec() / n.get_loop_iters()
-        else:
-            loop_wcec_once = n.get_refnode_rwcec()
-        loop_cond_line = n.get_start_line()
-        loop_max_iter = n.get_loop_iters()
-        loop_after_line = child.get_start_line()
-        loop_after_rwcec = child.get_rwcec()
-        self._insert_typeL_info(loop_cond_line, loop_wcec_once,
-                loop_max_iter, loop_after_line, loop_after_rwcec)
-
-    def _insert_typeL_info(self, loop_cond_line, loop_wcec_once,
-            loop_max_iter, loop_after_line, loop_after_rwcec):
-        """ Gather all information from a type-L edge and simulate DVFS code
-            execution.
-
-            Args:
-                bjline (int): start line of bj
-                rwcec_bi (int): RWCEC of bi
-                rwcec_bj (int): RWCEC of bj
-        """
-        pass
+    def print_results(self):
+        result = ''
 
