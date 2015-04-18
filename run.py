@@ -28,11 +28,36 @@ def simulate(graph):
         Args:
             graph (CFG): control flow graph of the given C file
     """
+    deadline, freqs_volt = read_config_file()
     cfgpaths = cfg_paths.CFGPaths()
     simulate = sim.SimDVFS(deadline, freqs_volt)
     simulate_worst_path(simulate, init_freq, graph)
-    simulate_best_path(simulate, init_freq, graph)
-    simulate_mid_path(simulate, init_freq, graph)
+    #simulate_best_path(simulate, init_freq, graph)
+    #simulate_mid_path(simulate, init_freq, graph)
+
+def read_config_file(config_file_name='sim.config'):
+    deadline = 0
+    freqs_volt = {}
+    freqs = []
+    volts = []
+    with open(config_file_name, 'rU') as f:
+        lines = f.readlines()
+        try:
+            deadline = float(lines[0].split()[0])
+
+            for freq in lines[1].split():
+                freqs.append(float(freq))
+
+            for volt in lines[2].split():
+                volts.append(float(freq))
+
+            for i in range(0, len(freqs)):
+                freqs_volt[freqs[i]] = volts[i]
+        except ValueError, IndexError:
+            print 'Invalid data in config file'
+            sys.exit(1)
+
+    return deadline, freqs_volt
 
 def simulate_worst_path(simulate, init_freq, graph):
     """ Start simulation for worst path.
@@ -103,6 +128,10 @@ def simulate_mid_path(simulate, init_freq, graph, wpath, bpath):
 def compute_mid_path_avrg(mpath, valentin=False, koreans=False):
     """ Compute the average case by following all possible middle paths.
 
+        For each used frequency, in order of appearance, store accumulative
+        WCEC and how many times this frequency was used. These information will
+        be used to take the average path.
+
         Args:
             mpath (list): first middle path which RWCEC is the greatest number
                 less than worst path's RWCEC.
@@ -123,9 +152,8 @@ def compute_mid_path_avrg(mpath, valentin=False, koreans=False):
         # initialize missing elements
         for i in range(0, len(mid_result) - len(avrg)):
             avrg.append({})
-        # for each used frequency, in order of appearance, store accumulative
-        # WCEC and how many times this frequency was used. These information
-        # will be used to take the middle path - average.
+
+        # store accumulative WCEC and how many times a frequency was used
         for i in range(0, len(mid_result)):
             freq = mid_result[i][0]
             wcec = mid_result[i][1]

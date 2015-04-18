@@ -153,7 +153,7 @@ class SimDVFS(object):
             'freq': freq, 'cycles': cycles, 'time': time, 'energy': energy,
             'deadline': self._deadline, 'total_time': total_time,
             'path_rwcec': path_rwcec, 'total_energy': total_energy,
-            'n', '\n'
+            'n': '\n'
         })
         print result
 
@@ -163,4 +163,4 @@ class SimDVFS(object):
         for freq, cycles in freq_cycles_consumed:
             energy = cycles * self.freqs_volt[freq]
         print ('Energy reduction based on worst frequency: %f%%' %
-                (energy * 100) / worst_energy))
+                (energy * 100) / worst_energy)
