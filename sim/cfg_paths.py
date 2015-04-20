@@ -42,8 +42,8 @@ class CFGPaths(object):
 
         cfg_path = None
         for entry in graph.get_entry_nodes():
+            path = []
             start_node = entry.get_func_first_node()
-            path = [(start_node, start_node.get_wcec())]
             rwcec = self._find_worst_path(start_node, path)
             cfg_path = CFGPath(rwcec, path)
         return cfg_path
