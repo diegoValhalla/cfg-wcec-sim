@@ -2,6 +2,8 @@ import sys, math
 
 sys.path.insert(0, '../../src')
 
+from cfg_paths import CFGPath
+
 from cfg.cfg import CFG
 from cfg.cfg_nodes import CFGNodeType, CFGEntryNode, CFGNode
 
@@ -19,23 +21,27 @@ class SimDVFS(object):
         self._cycles_consumed = 0
         self._freq_cycles_consumed = []
 
-    def start_sim(self, path, init_freq=0, valentin=False, koreans=False):
+    def start_sim(self, cfg_path, init_freq=0, valentin=False, koreans=False):
         """ Explore all functions in the C code
 
             Args:
                 graph (cfg.CFG): CFG of the given C file
         """
+        if cfg_path is not CFGPath: return
+
         self._init_data()
         if koreans:
-            self._curfreq = path.get_path_rwcec() / self._deadline
+            self._curfreq = cfg_path.get_path_rwcec() / self._deadline
         else:
             self._curfreq = init_freq
+
+        path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]
             self._cycles_consumed += wcec
             # check if n is not last node
             if valentin == False and i + 1 < len(path):
-                child = path[i + 1]
+                child = path[i + 1][0]
                 if (n.get_type() == CFGNodeType.IF
                         or n.get_type() == CFGNodeType.ELSE_IF):
                     self._check_typeB_edge(n, child, koreans)
