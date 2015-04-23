@@ -27,9 +27,10 @@ class SimDVFS(object):
             Args:
                 graph (cfg.CFG): CFG of the given C file
         """
-        if cfg_path is not CFGPath: return
+        if not isinstance(cfg_path, CFGPath): return
 
         self._init_data()
+
         if koreans:
             self._curfreq = cfg_path.get_path_rwcec() / self._deadline
         else:
@@ -96,7 +97,7 @@ class SimDVFS(object):
             loop_wcec_once = n.get_refnode_rwcec()
         runtime_iter = (loop_wcec - n.get_wcec()) / loop_wcec_once
 
-        ratio = self._compute_typeB_sur(loop_wcec_once, loop_after_rwcec,
+        ratio = self._compute_typeL_sur(loop_wcec_once, loop_after_rwcec,
                 loop_max_iter, runtime_iter)
         self._change_freq(ratio, koreans)
 
@@ -137,36 +138,40 @@ class SimDVFS(object):
         self._cycles_consumed = 0
 
     def print_results(self, path_rwcec, freq_cycles_consumed):
-        result = ''
+        result = '\n****** Result details ******\n\n'
         total_time = 0
         total_energy = 0
         for freq, cycles in freq_cycles_consumed:
-            time = float(cycles) / freq
-            energy = cycles * self.freqs_volt[freq]
-            result += 'F: %(freq)d%(n)s'
-            result += '  Cycles: %(cycles)d%(n)s'
-            result += '  Time: %(time)d%(n)s'
-            result += '  Energy: %(energy)d%(n)s%(n)s'
-            total_time += time
-            total_energy += energy
+            time_spent = float(cycles) / freq
+            energy_consumed = cycles * self._freqs_volt[freq]
+            result += '  F: %d MHz\n' % freq
+            result += '    Cycles: %d\n' % cycles
+            result += '    Time: %ds\n' % time_spent
+            result += '    Energy: %dJ\n\n' % energy_consumed
+            total_time += time_spent
+            total_energy += energy_consumed
 
-        result += 'Deadline: %(deadline)d%(n)s'
-        result += '  Total Time: %(total_time)d%(n)s'
-        result += 'RWCEC: %(path_rwcec)d%(n)s'
-        result += 'Total Energy: %(total_energy)d%(n)s'
+        result += '  *** Summary ***\n'
+        result += '    RWCEC: %d\n' % path_rwcec
+        result += '    Deadline: %ds\n' % self._deadline
+        result += '    Time Spent: %ds\n' % total_time
+        result += '    Total Energy: %dJ\n' % total_energy
 
-        result = result % ({
-            'freq': freq, 'cycles': cycles, 'time': time, 'energy': energy,
-            'deadline': self._deadline, 'total_time': total_time,
-            'path_rwcec': path_rwcec, 'total_energy': total_energy,
-            'n': '\n'
-        })
         print result
 
     def compare_result_to_worst_freq(self, path_rwcec, freq_cycles_consumed):
+        result = '\n**** Energy Reduction (based on greatest frequency) ****\n'
         worst_freq = max(self._freqs_available)
-        worst_energy = path_rwcec * self.freqs_volt[worst_freq]
+        worst_energy = path_rwcec * self._freqs_volt[worst_freq]
+
+        energy_consumed = 0
         for freq, cycles in freq_cycles_consumed:
-            energy = cycles * self.freqs_volt[freq]
-        print ('Energy reduction based on worst frequency: %f%%' %
-                (energy * 100) / worst_energy)
+            energy_consumed += cycles * self._freqs_volt[freq]
+
+        result += '  RWCEC: %d\n' % path_rwcec
+        result += '  Max frequency: %d MHz\n' % worst_freq
+        result += '  Max energy: %dJ\n' % worst_energy
+        result += '  Energy spent: %dJ\n' % energy_consumed
+        result += ('  Energy reduction: %.2f%%\n' %
+                    (100 - (energy_consumed * 100) / worst_energy))
+        print result
