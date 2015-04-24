@@ -1,3 +1,4 @@
+* Check which voltage should be used by Koreans' idea
 * Fix average WCEC simulation
 * Do the simulation in all CFG paths by applying Valentin's idea of optimum
   frequencies and Korean's idea to change intra-task frequency. Output the

@@ -28,12 +28,25 @@ def simulate(graph):
         Args:
             graph (CFG): control flow graph of the given C file
     """
-    deadline, freqs_volt = read_config_file()
+    deadline, init_freq, freqs_volt = read_config_file()
     cfgpaths = cfg_paths.CFGPaths()
     simulate = sim.SimDVFS(deadline, freqs_volt)
-    simulate_worst_path(simulate, init_freq, graph)
-    #simulate_best_path(simulate, init_freq, graph)
-    #simulate_mid_path(simulate, init_freq, graph)
+
+    simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            koreans=False)
+    #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=True,
+            #koreans=False)
+    #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            #koreans=True)
+
+    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            #koreans=False)
+    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=True,
+            #koreans=False)
+    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            #koreans=True)
+
+    #simulate_mid_path(cfgpaths, simulate, init_freq, graph)
 
 def read_config_file(config_file_name='sim.config'):
     deadline = 0
@@ -47,6 +60,7 @@ def read_config_file(config_file_name='sim.config'):
 
             for freq in lines[1].split():
                 freqs.append(float(freq))
+            init_freq = max(freqs)
 
             for volt in lines[2].split():
                 volts.append(float(freq))
@@ -57,9 +71,10 @@ def read_config_file(config_file_name='sim.config'):
             print 'Invalid data in config file'
             sys.exit(1)
 
-    return deadline, freqs_volt
+    return deadline, init_freq, freqs_volt
 
-def simulate_worst_path(simulate, init_freq, graph):
+def simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+        koreans=False):
     """ Start simulation for worst path.
 
         Args:
@@ -70,17 +85,19 @@ def simulate_worst_path(simulate, init_freq, graph):
     # get worst path for current proposal, valentin and koreans
     wpath = cfgpaths.find_worst_path(graph)
     write_path(wpath)
-    worst_result = simulate.start_sim(wpath, init_freq,
-            valentin=False, koreans=False)
-    worst_vresult = simulate.start_sim(wpath, init_freq,
-            valentin=True, koreans=False)
-    worst_kresult = simulate.start_sim(wpath, 0,
-            valentin=False, koreans=True)
 
-    print_result(wpath.get_path_rwcec(), worst_result, worst_vresult,
-            worst_kresult)
+    # simulate path execution
+    worst_result = simulate.start_sim(wpath, init_freq, valentin, koreans)
 
-def simulate_best_path(simulate, init_freq, graph):
+    # show results
+    if isinstance(worst_result, list):
+        simulate.print_results(wpath.get_path_rwcec(), worst_result,
+                valentin, koreans)
+        simulate.compare_result_to_worst_freq(wpath.get_path_rwcec(),
+                worst_result, valentin, koreans)
+
+def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+        koreans=False):
     """ Start simulation for best path.
 
         Args:
@@ -91,17 +108,18 @@ def simulate_best_path(simulate, init_freq, graph):
     # get best path for current proposal, valentin and koreans
     bpath = cfgpaths.find_best_path(graph)
     write_path(bpath)
-    best_result = simulate.start_sim(bpath, init_freq,
-            valentin=False, koreans=False)
-    best_vresult = simulate.start_sim(bpath, init_freq,
-            valentin=True, koreans=False)
-    best_kresult = simulate.start_sim(bpath, 0,
-            valentin=False, koreans=True)
 
-    print_result(bpath.get_path_rwcec(), best_result, best_vresult,
-            best_kresult)
+    # simulate path execution
+    best_result = simulate.start_sim(bpath, init_freq, valentin, koreans)
 
-def simulate_mid_path(simulate, init_freq, graph, wpath, bpath):
+    # show results
+    if isinstance(best_result, list):
+        simulate.print_results(bpath.get_path_rwcec(), best_result,
+                valentin, koreans)
+        simulate.compare_result_to_worst_freq(bpath.get_path_rwcec(),
+                best_result, valentin, koreans)
+
+def simulate_mid_path(cfgpaths, simulate, init_freq, graph, wpath, bpath):
     """ Start simulation for middle path.
 
         Args:
@@ -112,18 +130,29 @@ def simulate_mid_path(simulate, init_freq, graph, wpath, bpath):
             bpath (list): graph best path
     """
     # get middle path for current proposal, valentin and koreans
-    avrg = []
     mpath = cfgpaths.find_mid_path(graph, wpath.get_path_rwcec(),
             bpath.get_path_rwcec())
-    mid_result = compute_mid_path_avrg(mpath, valentin=False, koreans=False)
-    mid_vresult = compute_mid_path_avrg(mpath, valentin=True, koreans=False)
-    mid_kresult = compute_mid_path_avrg(mpath, valentin=False, koreans=True)
 
+    mid_result = compute_mid_path_avrg(mpath, valentin=False, koreans=False)
     avrg_rwcec = 0
     for freq, wcec in mid_result:
         avrg_rwcec += wcec
+    print_result(simulate, avrg_rwcec, mid_result)
+    #        valentin=True, koreans=False)
 
-    print_result(avrg_rwcec, mid_result, mid_vresult, mid_kresult)
+    mid_vresult = compute_mid_path_avrg(mpath, valentin=True, koreans=False)
+    avrg_rwcec = 0
+    for freq, wcec in mid_vresult:
+        avrg_rwcec += wcec
+    print_result(simulate, avrg_rwcec, mid_vresult)
+    #        valentin=True, koreans=False)
+
+    mid_kresult = compute_mid_path_avrg(mpath, valentin=False, koreans=True)
+    avrg_rwcec = 0
+    for freq, wcec in mid_kresult:
+        avrg_rwcec += wcec
+    print_result(simulate, avrg_rwcec, mid_kresult)
+    #        valentin=True, koreans=False)
 
 def compute_mid_path_avrg(mpath, valentin=False, koreans=False):
     """ Compute the average case by following all possible middle paths.
@@ -192,24 +221,6 @@ def write_path(path):
     for node, wcec in path.get_path():
         sys.stdout.write(str(node.get_start_line()) + ', ')
     sys.stdout.write('\n')
-
-def print_result(path_rwcec, result, vresult, kresult):
-    """ Just print results of each given path
-
-        Args:
-            path_rwcec (int): RWCEC of the given path
-            result (list): result of combination of Valentin and Koreans's
-                idea. This list is made of tuples(frequency, wcec)
-            vresult (list): Valentin's result
-            kresult (list): Koreans's result
-    """
-    simulate.print_results(path_rwcec, result)
-    simulate.print_results(path_rwcec, vresult)
-    simulate.print_results(path_rwcec, kresult)
-
-    simulate.compare_result_to_worst_freq(path_rwcec, result)
-    simulate.compare_result_to_worst_freq(path_rwcec, vresult)
-    simulate.compare_result_to_worst_freq(path_rwcec, kresult)
 
 
 if __name__ == '__main__':

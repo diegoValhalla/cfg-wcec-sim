@@ -137,8 +137,18 @@ class SimDVFS(object):
         self._curfreq = newfreq
         self._cycles_consumed = 0
 
-    def print_results(self, path_rwcec, freq_cycles_consumed):
-        result = '\n****** Result details ******\n\n'
+    def print_results(self, path_rwcec, freq_cycles_consumed, valentin,
+            koreans):
+        result = '\n****** Result details ******\n'
+
+        if valentin:
+            result += '(valentin)'
+        elif koreans:
+            result += '(koreans)'
+        else:
+            result += '(mine)'
+        result += '\n\n'
+
         total_time = 0
         total_energy = 0
         for freq, cycles in freq_cycles_consumed:
@@ -155,12 +165,22 @@ class SimDVFS(object):
         result += '    RWCEC: %d\n' % path_rwcec
         result += '    Deadline: %ds\n' % self._deadline
         result += '    Time Spent: %ds\n' % total_time
-        result += '    Total Energy: %dJ\n' % total_energy
+        result += '    Total Energy: %dJ' % total_energy
 
         print result
 
-    def compare_result_to_worst_freq(self, path_rwcec, freq_cycles_consumed):
+    def compare_result_to_worst_freq(self, path_rwcec, freq_cycles_consumed,
+            valentin, koreans):
         result = '\n**** Energy Reduction (based on greatest frequency) ****\n'
+
+        if valentin:
+            result += '(valentin)'
+        elif koreans:
+            result += '(koreans)'
+        else:
+            result += '(mine)'
+        result += '\n\n'
+
         worst_freq = max(self._freqs_available)
         worst_energy = path_rwcec * self._freqs_volt[worst_freq]
 
