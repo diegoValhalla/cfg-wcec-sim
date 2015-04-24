@@ -117,18 +117,23 @@ class SimDVFS(object):
     def _change_freq(self, ratio, koreans=False):
         if ratio >= 1: return
         newfreq = self._curfreq * ratio
-        newfreq = math.ceil(newfreq)
-        if newfreq < self._curfreq:
-            if koreans:
-                self._update_data(set_freq)
-            else:
-                # check for an available freq
+        if koreans:
+            if newfreq < self._curfreq:
+                self._update_data(newfreq)
+        else:
+            newfreq = math.ceil(newfreq)
+            if newfreq < self._curfreq:
+                # check for an available frequency - ceil operation
+                # check for the smallest value that is greater than or equal to
+                # new frequency
                 set_freq = 0
                 for freq in self._freqs_available:
                     if freq >= newfreq and (set_freq == 0 or freq <= set_freq):
                         set_freq = freq
-                # if freq is available
-                if set_freq != 0:
+                # if the new frequency value mapped into frequency set is equal
+                # to current frequency, it does not update data, because
+                # frequency is the same as before
+                if set_freq != 0 and set_freq != self._curfreq:
                     self._update_data(set_freq)
 
     def _update_data(self, newfreq):
