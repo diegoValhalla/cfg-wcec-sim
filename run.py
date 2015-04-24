@@ -32,15 +32,15 @@ def simulate(graph):
     cfgpaths = cfg_paths.CFGPaths()
     simulate = sim.SimDVFS(deadline, freqs_volt)
 
-    simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            koreans=False)
+    #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            #koreans=False)
     #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=True,
             #koreans=False)
     #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
             #koreans=True)
 
-    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=False)
+    simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            koreans=False)
     #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=True,
             #koreans=False)
     #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
@@ -63,7 +63,7 @@ def read_config_file(config_file_name='sim.config'):
             init_freq = max(freqs)
 
             for volt in lines[2].split():
-                volts.append(float(freq))
+                volts.append(float(volt))
 
             for i in range(0, len(freqs)):
                 freqs_volt[freqs[i]] = volts[i]
