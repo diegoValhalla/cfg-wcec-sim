@@ -158,20 +158,19 @@ class SimDVFS(object):
         total_energy = 0
         for freq, cycles in freq_cycles_consumed:
             time_spent = float(cycles) / freq
-            energy_consumed = cycles * self._freqs_volt[freq]
-            result += '  F: %d MHz\n' % freq
-            result += '    Cycles: %d\n' % cycles
-            result += '    Time: %ds\n' % time_spent
-            result += '    Energy: %dJ\n\n' % energy_consumed
+            energy_consumed = float(cycles) * self._freqs_volt[freq]
+            result += '  F: %.2f MHz\n' % freq
+            result += '    Cycles: %.2f\n' % cycles
+            result += '    Time: %.2fs\n' % time_spent
+            result += '    Energy: %.2fJ\n\n' % energy_consumed
             total_time += time_spent
             total_energy += energy_consumed
 
         result += '  *** Summary ***\n'
-        result += '    RWCEC: %d\n' % path_rwcec
-        result += '    Deadline: %ds\n' % self._deadline
-        result += '    Time Spent: %ds\n' % total_time
-        result += '    Total Energy: %dJ' % total_energy
-
+        result += '    RWCEC: %.2f\n' % path_rwcec
+        result += '    Deadline: %.2fs\n' % self._deadline
+        result += '    Time Spent: %.2fs\n' % total_time
+        result += '    Total Energy: %.2fJ' % total_energy
         print result
 
     def compare_result_to_worst_freq(self, path_rwcec, freq_cycles_consumed,
@@ -187,16 +186,20 @@ class SimDVFS(object):
         result += '\n\n'
 
         worst_freq = max(self._freqs_available)
-        worst_energy = path_rwcec * self._freqs_volt[worst_freq]
+        worst_energy = float(path_rwcec) * self._freqs_volt[worst_freq]
 
+        time_spent = 0
         energy_consumed = 0
         for freq, cycles in freq_cycles_consumed:
-            energy_consumed += cycles * self._freqs_volt[freq]
+            time_spent += float(cycles) / freq
+            energy_consumed += float(cycles) * self._freqs_volt[freq]
 
-        result += '  RWCEC: %d\n' % path_rwcec
-        result += '  Max frequency: %d MHz\n' % worst_freq
-        result += '  Max energy: %dJ\n' % worst_energy
-        result += '  Energy spent: %dJ\n' % energy_consumed
+        result += '  RWCEC: %.2f\n' % path_rwcec
+        result += '  Deadline: %.2fs\n' % self._deadline
+        result += '  Time Spent: %.2fs\n' % time_spent
+        result += '  Max frequency: %.2f MHz\n' % worst_freq
+        result += '  Max energy: %.2fJ\n' % worst_energy
+        result += '  Energy spent: %.2fJ\n' % energy_consumed
         result += ('  Energy reduction: %.2f%%\n' %
                     (100 - (energy_consumed * 100) / worst_energy))
         print result
