@@ -94,7 +94,7 @@ def simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
         simulate.print_results(wpath.get_path_rwcec(), worst_result,
                 valentin, koreans)
         simulate.compare_result_to_worst_freq(wpath.get_path_rwcec(),
-                worst_result, valentin, koreans)
+                worst_result, 0, 0, valentin, koreans)
 
 def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
         koreans=False):
@@ -117,7 +117,7 @@ def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
         simulate.print_results(bpath.get_path_rwcec(), best_result,
                 valentin, koreans)
         simulate.compare_result_to_worst_freq(bpath.get_path_rwcec(),
-                best_result, valentin, koreans)
+                best_result, 0, 0, valentin, koreans)
 
 def simulate_mid_path(cfgpaths, simulate, init_freq, graph, wpath, bpath):
     """ Start simulation for middle path.
