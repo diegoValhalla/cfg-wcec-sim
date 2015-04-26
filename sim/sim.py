@@ -21,6 +21,9 @@ class SimDVFS(object):
         self._cycles_consumed = 0
         self._freq_cycles_consumed = []
 
+    def get_volt_from_freq(self, freq):
+        return self._freqs_volt[freq]
+
     def start_sim(self, cfg_path, init_freq=0, valentin=False, koreans=False):
         """ Explore all functions in the C code
 

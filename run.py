@@ -39,14 +39,19 @@ def simulate(graph):
     #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
             #koreans=True)
 
-    simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            koreans=False)
+    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            #koreans=False)
     #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=True,
             #koreans=False)
     #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
             #koreans=True)
 
-    #simulate_mid_path(cfgpaths, simulate, init_freq, graph)
+    simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            koreans=False)
+    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=True,
+            #koreans=False)
+    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            #koreans=True)
 
 def read_config_file(config_file_name='sim.config'):
     deadline = 0
@@ -119,7 +124,8 @@ def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
         simulate.compare_result_to_worst_freq(bpath.get_path_rwcec(),
                 best_result, 0, 0, valentin, koreans)
 
-def simulate_mid_path(cfgpaths, simulate, init_freq, graph, wpath, bpath):
+def simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+        koreans=False):
     """ Start simulation for middle path.
 
         Args:
@@ -130,85 +136,37 @@ def simulate_mid_path(cfgpaths, simulate, init_freq, graph, wpath, bpath):
             bpath (list): graph best path
     """
     # get middle path for current proposal, valentin and koreans
+    wpath = cfgpaths.find_worst_path(graph)
+    bpath = cfgpaths.find_best_path(graph)
     mpath = cfgpaths.find_mid_path(graph, wpath.get_path_rwcec(),
             bpath.get_path_rwcec())
 
-    mid_result = compute_mid_path_avrg(mpath, valentin=False, koreans=False)
+    mid_paths_count = 0
     avrg_rwcec = 0
-    for freq, wcec in mid_result:
-        avrg_rwcec += wcec
-    print_result(simulate, avrg_rwcec, mid_result)
-    #        valentin=True, koreans=False)
-
-    mid_vresult = compute_mid_path_avrg(mpath, valentin=True, koreans=False)
-    avrg_rwcec = 0
-    for freq, wcec in mid_vresult:
-        avrg_rwcec += wcec
-    print_result(simulate, avrg_rwcec, mid_vresult)
-    #        valentin=True, koreans=False)
-
-    mid_kresult = compute_mid_path_avrg(mpath, valentin=False, koreans=True)
-    avrg_rwcec = 0
-    for freq, wcec in mid_kresult:
-        avrg_rwcec += wcec
-    print_result(simulate, avrg_rwcec, mid_kresult)
-    #        valentin=True, koreans=False)
-
-def compute_mid_path_avrg(mpath, valentin=False, koreans=False):
-    """ Compute the average case by following all possible middle paths.
-
-        For each used frequency, in order of appearance, store accumulative
-        WCEC and how many times this frequency was used. These information will
-        be used to take the average path.
-
-        Args:
-            mpath (list): first middle path which RWCEC is the greatest number
-                less than worst path's RWCEC.
-            valentin (boolean): set Valentin's approach
-            koreans (boolean): set Koreans's approach
-
-        Returns:
-            list of tuples where each element is composed by the frequency and
-            WCEC consumed.
-    """
-    mpaths_count = 0
+    avrg_time_spent = 0
+    avrg_energy_consumed = 0
     while mpath is not None:
-        mpaths_count += 1
-        write_path(mpath)
-        mid_result = simulate.start_sim(mpath, init_freq,
-                valentin=False, koreans=False)
+        mid_paths_count += 1
+        #write_path(mpath)
+        mid_result = simulate.start_sim(mpath, init_freq, valentin, koreans)
 
-        # initialize missing elements
-        for i in range(0, len(mid_result) - len(avrg)):
-            avrg.append({})
-
-        # store accumulative WCEC and how many times a frequency was used
-        for i in range(0, len(mid_result)):
-            freq = mid_result[i][0]
-            wcec = mid_result[i][1]
-            if freq not in avrg[i]:
-                avrg[i][freq] = [0, 0]
-            avrg[i][freq][0] += wcec
-            avrg[i][freq][1] += 1
+        for freq, cycles in mid_result:
+            avrg_rwcec += cycles
+            avrg_time_spent += float(cycles) / freq
+            avrg_energy_consumed += (float(cycles) *
+                    simulate.get_volt_from_freq(freq))
 
         mpath = cfgpaths.find_mid_path(graph, mpath.get_path_rwcec(),
                 bpath.get_path_rwcec())
 
-    avrg_result = []
-    for i in avrg:
-        set_freq = 0
-        set_wcec = 0
-        greatest_used_times = 0
-        for freq in avrg[i]:
-            if avrg[i][freq][1] > greatest_used_times:
-                set_freq = freq
-                set_wcec = avrg[i][freq][0]
-                greatest_used_times = avrg[i][freq][1]
-        if set_freq != 0:
-            data = (set_freq, set_wcec / mpaths_count)
-            avrg_result.append(data)
+    avrg_rwcec = float(avrg_rwcec) / mid_paths_count
+    avrg_time_spent = float(avrg_time_spent) / mid_paths_count
+    avrg_energy_consumed = float(avrg_energy_consumed) / mid_paths_count
 
-    return avrg_result
+    # show results
+    if mid_paths_count > 0:
+        simulate.compare_result_to_worst_freq(avrg_rwcec, [], avrg_time_spent,
+                avrg_energy_consumed, valentin, koreans)
 
 def write_path(path):
     """ Print RWCEC and the start line of each node of the given path
