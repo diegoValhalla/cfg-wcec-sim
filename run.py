@@ -33,25 +33,25 @@ def simulate(graph):
     simulate = sim.SimDVFS(deadline, freqs_volt)
 
     #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=False)
+            #koreans=False, show_result=True)
     #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=True,
-            #koreans=False)
+            #koreans=False, show_result=True)
     #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=True)
+            #koreans=True, show_result=True)
 
-    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=False)
+    simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            koreans=False, show_result=True)
     #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=True,
-            #koreans=False)
+            #koreans=False, show_result=True)
     #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=True)
+            #koreans=True, show_result=True)
 
-    simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            koreans=False)
-    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=True,
-            #koreans=False)
     #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=True)
+            #koreans=False, show_result=True)
+    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=True,
+            #koreans=False, show_result=True)
+    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+            #koreans=True, show_result=True)
 
 def read_config_file(config_file_name='sim.config'):
     deadline = 0
@@ -79,7 +79,7 @@ def read_config_file(config_file_name='sim.config'):
     return deadline, init_freq, freqs_volt
 
 def simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-        koreans=False):
+        koreans=False, show_result=True):
     """ Start simulation for worst path.
 
         Args:
@@ -89,20 +89,21 @@ def simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
     """
     # get worst path for current proposal, valentin and koreans
     wpath = cfgpaths.find_worst_path(graph)
-    write_path(wpath)
+    if show_result:
+        write_path(wpath)
 
     # simulate path execution
     worst_result = simulate.start_sim(wpath, init_freq, valentin, koreans)
 
     # show results
-    if isinstance(worst_result, list):
+    if isinstance(worst_result, list) and show_result:
         simulate.print_results(wpath.get_path_rwcec(), worst_result,
                 valentin, koreans)
         simulate.compare_result_to_worst_freq(wpath.get_path_rwcec(),
                 worst_result, 0, 0, valentin, koreans)
 
 def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-        koreans=False):
+        koreans=False, show_result=True):
     """ Start simulation for best path.
 
         Args:
@@ -112,20 +113,21 @@ def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
     """
     # get best path for current proposal, valentin and koreans
     bpath = cfgpaths.find_best_path(graph)
-    write_path(bpath)
+    if show_result:
+        write_path(bpath)
 
     # simulate path execution
     best_result = simulate.start_sim(bpath, init_freq, valentin, koreans)
 
     # show results
-    if isinstance(best_result, list):
+    if isinstance(best_result, list) and show_result:
         simulate.print_results(bpath.get_path_rwcec(), best_result,
                 valentin, koreans)
         simulate.compare_result_to_worst_freq(bpath.get_path_rwcec(),
                 best_result, 0, 0, valentin, koreans)
 
 def simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-        koreans=False):
+        koreans=False, show_result=True):
     """ Start simulation for middle path.
 
         Args:
@@ -147,7 +149,8 @@ def simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
     avrg_energy_consumed = 0
     while mpath is not None:
         mid_paths_count += 1
-        #write_path(mpath)
+        if show_result:
+            write_path(mpath)
         mid_result = simulate.start_sim(mpath, init_freq, valentin, koreans)
 
         for freq, cycles in mid_result:
@@ -164,7 +167,7 @@ def simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
     avrg_energy_consumed = float(avrg_energy_consumed) / mid_paths_count
 
     # show results
-    if mid_paths_count > 0:
+    if mid_paths_count > 0 and show_result:
         simulate.compare_result_to_worst_freq(avrg_rwcec, [], avrg_time_spent,
                 avrg_energy_consumed, valentin, koreans)
 
