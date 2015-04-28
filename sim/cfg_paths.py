@@ -84,8 +84,8 @@ class CFGPaths(object):
 
         cfg_path = None
         for entry in graph.get_entry_nodes():
-            path = []
             start_node = entry.get_func_first_node()
+            path = [(start_node, start_node.get_wcec())]
             cfg_path = self._find_mid_path(start_node, path,
                     start_node.get_wcec(), upper_rwcec, lower_rwcec, 0)
         return cfg_path
