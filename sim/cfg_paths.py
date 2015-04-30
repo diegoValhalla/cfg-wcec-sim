@@ -28,7 +28,15 @@ class CFGPaths(object):
     """ Find the worst. best and middle paths in a CFG, assuming that each
         given CFG is made by only one function. In other words, all C code must
         be inside 'main()'
+
+        Attributes:
+            _mid_paths (dic): holds all middle paths that their RWCECs are in
+                the range of the given lower and upper RWCEC bounds. The key is
+                path RWCEC, whereas the value is a CFGPath object.
     """
+    def __init__(self):
+        self._mid_paths = {}
+
     def find_worst_path(self, graph):
         """ Explore all graph to find the worst path based on RWCEC.
 
@@ -82,12 +90,13 @@ class CFGPaths(object):
         """
         if not isinstance(graph, CFG): return
 
-        cfg_path = None
-        for entry in graph.get_entry_nodes():
-            start_node = entry.get_func_first_node()
-            path = [(start_node, start_node.get_wcec())]
-            cfg_path = self._find_mid_path(start_node, path,
-                    start_node.get_wcec(), upper_rwcec, lower_rwcec, 0)
+        cfg_path = self._check_mid_path_cached(lower_rwcec, upper_rwcec)
+        if cfg_path == None:
+            for entry in graph.get_entry_nodes():
+                start_node = entry.get_func_first_node()
+                path = [(start_node, start_node.get_wcec())]
+                cfg_path = self._find_mid_path(start_node, path,
+                        start_node.get_wcec(), upper_rwcec, lower_rwcec, 0)
         return cfg_path
 
     def _find_worst_path(self, n, path):
@@ -168,8 +177,11 @@ class CFGPaths(object):
             words, check the best path doing the loop once, twice, three times
             until its maximum iteration number.
 
-            Note: only the most external loop is handled. So, loops nested are
+            Note I: only the most external loop is handled. So, loops nested are
             not supported.
+
+            Note II: for each path found, even if it is not the best one, keep
+            it in cached to be reused.
 
             Args:
                 n (CFGNode): current node
@@ -228,7 +240,31 @@ class CFGPaths(object):
 
         # get a new cfg path whose RWCEC is valid
         if n.get_children() == []:
-            if newrwcec > bestrwcec and lrwcec < newrwcec and newrwcec < urwcec:
-                cfg_path = CFGPath(newrwcec, path)
+            if lrwcec < newrwcec and newrwcec < urwcec:
+                # keep the found path in cache
+                self._mid_paths[newrwcec] = CFGPath(newrwcec, path)
+                if newrwcec > bestrwcec:
+                    cfg_path = CFGPath(newrwcec, path)
 
         return cfg_path
+
+    def _check_mid_path_cached(self, lrwcec, urwcec):
+        """ Check if, for the given bounds, there is a middle path in cache
+            whose RWCEC is in the range.
+
+            Args:
+                lrwcec (int): lower bound
+                urwcec (int): upper bound
+
+            Returns:
+                CFGPath object if there is a valid RWCEC in the given range or
+                None if there is not any path.
+        """
+        mid_rwcec = 0
+        for rwcec in self._mid_paths:
+            if rwcec > mid_rwcec and lrwcec < rwcec and rwcec < urwcec:
+                mid_rwcec = rwcec
+
+        if mid_rwcec > 0:
+            return self._mid_paths[mid_rwcec]
+        return None
