@@ -9,6 +9,27 @@ from cfg.cfg_nodes import CFGNodeType, CFGEntryNode, CFGNode
 
 
 class SimDVFS(object):
+    """ Simulates path execution and holds each frequency changing information,
+        such as the number of cycles executed with the same frequency before
+        changing it. It also prints the results.
+
+        Args:
+            deadline (int): task's deadline
+            freqs_volt (dic): dictionary where key is the frequency and supply
+                voltage to use the given frequency is the value
+
+        Attributes:
+            _freqs_available (list): list of the supported frequencies
+            _freqs_volt (dic): key is the frequency and voltage is the value
+            _deadline (float): task's deadline
+            _typeB_overhead (float): cycles overhead of typeB edges operations
+            _typeL_overhead (float): cycles overhead of typeL edges operations
+            _curfreq (float): current frequency being used in path execution
+            _cycles_consumed (float): cycles consumed so far in path execution
+            _freq_cycles_consumed (list): list to store path execution history
+                where each element is a tuple(frequency used, cycles consumed
+                by the given frequency)
+    """
     def __init__(self, deadline=0, freqs_volt={}):
         self._freqs_available = list(freqs_volt.keys())
         self._freqs_volt = freqs_volt
@@ -17,18 +38,41 @@ class SimDVFS(object):
         self._typeL_overhead = 0
 
     def _init_data(self):
+        """ Initializes main data to keep track.
+        """
         self._curfreq = 0
         self._cycles_consumed = 0
         self._freq_cycles_consumed = []
 
     def get_volt_from_freq(self, freq):
+        """ Returns the supply voltage that matches to the given frequency
+
+            Args:
+                freq (float): frequency
+
+            Returns:
+                (float) supply voltage
+        """
         return self._freqs_volt[freq]
 
     def start_sim(self, cfg_path, init_freq=0, valentin=False, koreans=False):
-        """ Explore all functions in the C code
+        """ Start path execution and check for each typeB and typeL edges.
+
+            Note: if Valentin's and Koreans' idea are both false, so they are
+            used together (this is the given propose).
 
             Args:
-                graph (cfg.CFG): CFG of the given C file
+                cfg_path (CFGPath): object contains the path for execution
+                init_freq (float): initial frequency to be used
+                valentin (boolean): if Valentin's idea should be used
+                koreans (boolean): if Koreans' idea should be used
+
+            Returns:
+                (list) List where each element is a tuple made by the frequency
+                used and how many cycles where consumed using the same
+                frequency. This list order is according to frequency
+                appearance. In other words, one frequency can be presented in
+                more than one tuple since it was used in different moments.
         """
         if not isinstance(cfg_path, CFGPath): return
 
@@ -43,7 +87,8 @@ class SimDVFS(object):
         for i in range(0, len(path)):
             n, wcec = path[i]
             self._cycles_consumed += wcec
-            # check if n is not last node
+            # check if n is not last node, because typeB and typeL edges are
+            # always check with the pair (parent, child)
             if valentin == False and i + 1 < len(path):
                 child = path[i + 1][0]
                 if (n.get_type() == CFGNodeType.IF
@@ -61,15 +106,13 @@ class SimDVFS(object):
     def _check_typeB_edge(self, n, child, koreans=False):
         """ Check if current child has a RWCEC less than the greatest RWCEC of
             a successor of current node. If it is, so this is a type-B edge.
-
-            Note: if child is an ELSE_IF node, the DVFS check must happen in
-            its first child (then-statement), because there is no way to change
-            frequency before a else-if condition.
+            Then, compute typeB speed update ratio and change frequency if it is
+            possible.
 
             Args:
-                clines (list): list of tuples (clines, text) from C code
                 n (CFGNode): current node being visited
                 child (CFGNode): child of n
+                koreans (boolean): if Koreans' idea should be used
         """
         rwcec_succbi = n.get_rwcec() - n.get_wcec()
         rwcec_bj = child.get_rwcec()
@@ -79,16 +122,30 @@ class SimDVFS(object):
             self._change_freq(ratio, koreans)
 
     def _compute_typeB_sur(self, rwcec_wsbi, rwcec_bj):
+        """ Compute speed update ratio from type-B edge
+              r(bi, bj) = RWCEC(bj) / (RWCEC(WORST_SUCC(bi)) - typeB_overhead)
+
+            Args:
+                rwcec_wsbi (float): RWCEC of the worst successor of bi
+                rwcec_bj (float): RWCEC of bj
+
+            Returns:
+                (float) speed update ratio from a type-B edge
+        """
         if rwcec_wsbi - self._typeB_overhead <= 0:
-            return 1
+            return float(1)
         return float(rwcec_bj) / (rwcec_wsbi - self._typeB_overhead)
 
     def _check_typeL_edge(self, n, loop_wcec, child, koreans=False):
-        """ Get loop information from current node and child and add DVFS code
+        """ Compute typeL speed update ratio by using how many loop iterations
+            were done in the given path and its WCEC of one execution. Then,
+            change frequency if it is possible.
 
             Args:
                 n (CFGNode): current node being visited
+                loop_wcec (float): loop RWCEC using all its iterations
                 child (CFGNode): child of n
+                koreans (boolean): if Koreans' idea should be used
         """
         loop_max_iter = n.get_loop_iters()
         loop_after_line = child.get_start_line()
@@ -106,18 +163,57 @@ class SimDVFS(object):
 
     def _compute_typeL_sur(self, loop_wcec_once, loop_after_rwcec,
                 loop_max_iter, runtime_iter):
+        """ Compute speed update ratio from type-L edge
+            r(bi,bout) = RWCEC(bout)/(RWCEC(bout) + SAVED(bi) - typeB_overhead)
+            where bi is loop condition node.
+
+            Args:
+                loop_wcec_once (float): WCEC of one loop execution
+                loop_after_rwcec (float): RWCEC of first node after loop
+                    execution.
+                loop_max_iter (float): maximum number of loop iterations
+                runtime_iter (float): how many loop iterations were done at
+                    runtime.
+
+            Returns:
+                (float) speed update ratio from a type-L edge
+        """
         saved = self._compute_typeL_cycles_saved(loop_wcec_once,
                 loop_max_iter, runtime_iter)
         if loop_after_rwcec + saved - self._typeL_overhead <= 0:
-            return 1
+            return float(1)
         return (float(loop_after_rwcec) /
                 (loop_after_rwcec + saved - self._typeL_overhead))
 
     def _compute_typeL_cycles_saved(self, loop_wcec_once, loop_max_iter,
             runtime_iter):
+        """ Compute how many cycles were not executed
+            r(bi, bout) = RWCEC(bout)/(RWCEC(bout) + SAVED(bi) - typeB_overhead)
+            where bi is loop condition node.
+
+            Args:
+                loop_wcec (float): WCEC of one loop execution
+                loop_max_iter (float): maximum number of loop iterations
+                runtime_iter (float): how many loop iterations were done at
+                    runtime.
+
+            Returns:
+                (float) cycles that were not executed from a type-L edge
+        """
         return loop_wcec_once * (loop_max_iter - runtime_iter)
 
     def _change_freq(self, ratio, koreans=False):
+        """ Change frequency if it is possible by checking the given ratio
+            value. If it is greater or equal than one, change it will not
+            improve energy efficiency. Otherwise, map the new frequency to the
+            list of available ones, apply it if it is not equal to the
+            current frequency and save the history of updates.
+
+            Args:
+                ratio (float): the ratio of how less is the following path from
+                    worst case.
+                koreans (boolean): if Koreans' idea should be used
+        """
         if ratio >= 1: return
         newfreq = self._curfreq * ratio
         if koreans:
@@ -140,21 +236,42 @@ class SimDVFS(object):
                     self._update_data(set_freq)
 
     def _update_data(self, newfreq):
+        """ Save the history of how many cycles where consumed using the
+            current frequency and apply the new frequency.
+
+            Args:
+                newfreq (float): new frequency to be used in path execution
+        """
         data = (self._curfreq, self._cycles_consumed)
         self._freq_cycles_consumed.append(data)
         self._curfreq = newfreq
         self._cycles_consumed = 0
 
-    def print_results(self, path_rwcec, freq_cycles_consumed, valentin,
-            koreans):
+    def print_results(self, path_name, path_rwcec, freq_cycles_consumed,
+            valentin, koreans):
+        """ Print detailed information in standard output of a given result by
+            checking which idea is being used.
+
+            Note: This print function can't be used to middle path since it
+            is made by the average result of all middle paths. So, there is no
+            way to know the frequencies used in average.
+
+            Args:
+                path_name (string): if it is worst, best or average path
+                path_rwcec (float): path RWCEC
+                freq_cycles_consumed (list): result list of a path execution
+                valentin (boolean): if Valentin's idea should be used
+                koreans (boolean): if Koreans' idea should be used
+        """
         result = '\n****** Result details ******\n'
 
         if valentin:
-            result += '(valentin)'
+            result += '(valentin'
         elif koreans:
-            result += '(koreans)'
+            result += '(koreans'
         else:
-            result += '(mine)'
+            result += '(mine'
+        result += ' - ' + path_name + ')'
         result += '\n\n'
 
         total_time = 0
@@ -176,16 +293,41 @@ class SimDVFS(object):
         result += '    Total Energy: %.2fJ' % total_energy
         print result
 
-    def compare_result_to_worst_freq(self, path_rwcec, freq_cycles_consumed,
-            time_spent, energy_consumed, valentin, koreans):
+    def compare_result_to_worst_freq(self, path_name, path_rwcec,
+            freq_cycles_consumed, time_spent, energy_consumed, valentin,
+            koreans):
+        """ Print summary information in standard output of a given result by
+            comparing it to the used of greatest frequency available in the
+            same path execution.
+
+            Note: This print function should be used with middle paths and the
+            parameters: time_spent and energy_consumed, should not be zero and
+            freq_cycles_consumed should be an empty list in order to print
+            average results.
+
+            Args:
+                path_name (string): if it is worst, best or average path
+                path_rwcec (float): path RWCEC. If it is middle path, this
+                    value is the average of all middle paths.
+                freq_cycles_consumed (list): result list of a path execution
+                time_spent (float): time spent executing the given path. If it
+                    is middle path, this value is the average of all middle
+                    paths.
+                energy_consumed (float): energy consumed in the given path
+                    execution. If it is middle path, this value is the average
+                    of all middle paths.
+                valentin (boolean): if Valentin's idea should be used
+                koreans (boolean): if Koreans' idea should be used
+        """
         result = '\n**** Energy Reduction (based on greatest frequency) ****\n'
 
         if valentin:
-            result += '(valentin)'
+            result += '(valentin'
         elif koreans:
-            result += '(koreans)'
+            result += '(koreans'
         else:
-            result += '(mine)'
+            result += '(mine'
+        result += ' - ' + path_name + ')'
         result += '\n\n'
 
         worst_freq = max(self._freqs_available)

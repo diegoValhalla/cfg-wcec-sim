@@ -7,7 +7,8 @@ from sim import cfg_paths, sim
 
 
 def run(filename):
-    """ Run simulation of path executions on the given file name.
+    """ Run simulation by first getting the task CFG, then simulating path
+        execution on the given C file.
 
         Args:
             filename (string): name of C file
@@ -16,44 +17,56 @@ def run(filename):
     graph = cfg.CFG(filename)
     graph.make_cfg()
 
-    # create graphml
-    graphml = cfg2graphml.CFG2Graphml()
-    graphml.make_graphml(graph, file_name='opa.graphml', yed_output=True)
-
-    simulate(graph)
-
-def simulate(graph):
-    """ Simulate execution of all paths of the CFG
-
-        Args:
-            graph (CFG): control flow graph of the given C file
-    """
+    # get and initialize data for simulation
     deadline, init_freq, freqs_volt = read_config_file()
     cfgpaths = cfg_paths.CFGPaths()
     simulate = sim.SimDVFS(deadline, freqs_volt)
 
-    #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+    simulation(graph, init_freq, cfgpaths, simulate)
+
+def simulation(graph, init_freq, cfgpaths, simulate):
+    """ Simulate execution of worst, best and average paths of the given graph.
+
+        Args:
+            graph (CFG): control flow graph of the given C file
+            init_freq (float): initial frequency to start path execution
+            cfgpaths (CFGPaths): object to find worst, best and middle paths
+            simulate (SimDVFS): object to simulate path execution and print
+                results.
+    """
+    #simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             #koreans=False, show_result=True)
-    #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=True,
+    #simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=True,
             #koreans=False, show_result=True)
-    #simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+    #simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
-    simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+    #simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
+            #koreans=False, show_result=True)
+    #simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=True,
+            #koreans=False, show_result=True)
+    #simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
+            #koreans=True, show_result=True)
+
+    simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             koreans=False, show_result=True)
-    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=True,
+    #simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=True,
             #koreans=False, show_result=True)
-    #simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=True, show_result=True)
-
-    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-            #koreans=False, show_result=True)
-    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=True,
-            #koreans=False, show_result=True)
-    #simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
+    #simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
 def read_config_file(config_file_name='sim.config'):
+    """ Get task and environment information of a configuration file.
+
+        Args:
+            config_file_name (string): configuration file name
+
+        Returns:
+            (float) task's deadline
+            (float) initial frequency to be used
+            (dic) freqs_volt: dictionary where key is the frequency and supply
+                voltage to use the given frequency is the value
+    """
     deadline = 0
     freqs_volt = {}
     freqs = []
@@ -78,14 +91,20 @@ def read_config_file(config_file_name='sim.config'):
 
     return deadline, init_freq, freqs_volt
 
-def simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-        koreans=False, show_result=True):
-    """ Start simulation for worst path.
+def simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
+        koreans=False, show_result=False):
+    """ Start simulation of worst path.
 
         Args:
-            simulate (SimDVFS): object to simulate path execution
-            init_freq (int): initial frequency to be used
             graph (CFG): control flow graph of the given C file
+            init_freq (float): initial frequency to start path execution
+            cfgpaths (CFGPaths): object to find worst, best and middle paths
+            simulate (SimDVFS): object to simulate path execution and print
+                results.
+            valentin (boolean): if Valentin's idea should be used
+            koreans (boolean): if Koreans' idea should be used
+            show_result (boolean): if result information should be print in
+                standard output.
     """
     # get worst path for current proposal, valentin and koreans
     wpath = cfgpaths.find_worst_path(graph)
@@ -97,19 +116,25 @@ def simulate_worst_path(cfgpaths, simulate, init_freq, graph, valentin=False,
 
     # show results
     if isinstance(worst_result, list) and show_result:
-        simulate.print_results(wpath.get_path_rwcec(), worst_result,
+        simulate.print_results('worst', wpath.get_path_rwcec(), worst_result,
                 valentin, koreans)
-        simulate.compare_result_to_worst_freq(wpath.get_path_rwcec(),
+        simulate.compare_result_to_worst_freq('worst', wpath.get_path_rwcec(),
                 worst_result, 0, 0, valentin, koreans)
 
-def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-        koreans=False, show_result=True):
-    """ Start simulation for best path.
+def simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
+        koreans=False, show_result=False):
+    """ Start simulation of best path.
 
         Args:
-            simulate (SimDVFS): object to simulate path execution
-            init_freq (int): initial frequency to be used
             graph (CFG): control flow graph of the given C file
+            init_freq (float): initial frequency to start path execution
+            cfgpaths (CFGPaths): object to find worst, best and middle paths
+            simulate (SimDVFS): object to simulate path execution and print
+                results.
+            valentin (boolean): if Valentin's idea should be used
+            koreans (boolean): if Koreans' idea should be used
+            show_result (boolean): if result information should be print in
+                standard output.
     """
     # get best path for current proposal, valentin and koreans
     bpath = cfgpaths.find_best_path(graph)
@@ -121,21 +146,25 @@ def simulate_best_path(cfgpaths, simulate, init_freq, graph, valentin=False,
 
     # show results
     if isinstance(best_result, list) and show_result:
-        simulate.print_results(bpath.get_path_rwcec(), best_result,
+        simulate.print_results('best', bpath.get_path_rwcec(), best_result,
                 valentin, koreans)
-        simulate.compare_result_to_worst_freq(bpath.get_path_rwcec(),
+        simulate.compare_result_to_worst_freq('best', bpath.get_path_rwcec(),
                 best_result, 0, 0, valentin, koreans)
 
-def simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
-        koreans=False, show_result=True):
-    """ Start simulation for middle path.
+def simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
+        koreans=False, show_result=False):
+    """ Start simulation of middle path.
 
         Args:
-            simulate (SimDVFS): object to simulate path execution
-            init_freq (int): initial frequency to be used
             graph (CFG): control flow graph of the given C file
-            wpath (list): graph worst path
-            bpath (list): graph best path
+            init_freq (float): initial frequency to start path execution
+            cfgpaths (CFGPaths): object to find worst, best and middle paths
+            simulate (SimDVFS): object to simulate path execution and print
+                results.
+            valentin (boolean): if Valentin's idea should be used
+            koreans (boolean): if Koreans' idea should be used
+            show_result (boolean): if result information should be print in
+                standard output.
     """
     # get middle path for current proposal, valentin and koreans
     wpath = cfgpaths.find_worst_path(graph)
@@ -149,8 +178,9 @@ def simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
     avrg_energy_consumed = 0
     while mpath is not None:
         mid_paths_count += 1
-        if show_result:
-            write_path(mpath)
+        #print mid_paths_count
+        #if show_result:
+            #write_path(mpath)
         mid_result = simulate.start_sim(mpath, init_freq, valentin, koreans)
 
         for freq, cycles in mid_result:
@@ -168,11 +198,12 @@ def simulate_mid_path(cfgpaths, simulate, init_freq, graph, valentin=False,
 
     # show results
     if mid_paths_count > 0 and show_result:
-        simulate.compare_result_to_worst_freq(avrg_rwcec, [], avrg_time_spent,
-                avrg_energy_consumed, valentin, koreans)
+        simulate.compare_result_to_worst_freq('average', avrg_rwcec, [],
+                avrg_time_spent, avrg_energy_consumed, valentin, koreans)
 
 def write_path(path):
-    """ Print RWCEC and the start line of each node of the given path
+    """ Print RWCEC and the start line of each node of the given path in
+        standard output.
 
         Args:
             path (list): each element is a tuple(CFGNode, WCEC)
