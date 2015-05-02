@@ -36,6 +36,7 @@ class CFGPaths(object):
     """
     def __init__(self):
         self._mid_paths = {}
+        self._visited_loops = {}
 
     def find_worst_path(self, graph):
         """ Explore all graph to find the worst path based on RWCEC.
@@ -90,13 +91,15 @@ class CFGPaths(object):
         """
         if not isinstance(graph, CFG): return
 
-        cfg_path = self._check_mid_path_cached(lower_rwcec, upper_rwcec)
-        if cfg_path == None:
+        if self._mid_paths != {}:
+            return self._check_mid_path_cached(lower_rwcec, upper_rwcec)
+        else:
             for entry in graph.get_entry_nodes():
                 start_node = entry.get_func_first_node()
                 path = [(start_node, start_node.get_wcec())]
                 cfg_path = self._find_mid_path(start_node, path,
                         start_node.get_wcec(), upper_rwcec, lower_rwcec, 0)
+
         return cfg_path
 
     def _find_worst_path(self, n, path):
@@ -213,8 +216,6 @@ class CFGPaths(object):
                     and (cfg_path is None or tmp_path.get_path_rwcec() >
                         cfg_path.get_path_rwcec())):
                 cfg_path = tmp_path
-
-            if cfg_path is not None:
                 bestrwcec = cfg_path.get_path_rwcec()
 
         # get a new cfg path whose RWCEC is valid
@@ -251,6 +252,31 @@ class CFGPaths(object):
     def _check_mid_path_loops(self, child, path, newrwcec, urwcec, lrwcec,
             bestrwcec):
         tmp_path = cfg_path = None
+
+        if child.get_start_line() in self._visited_loops:
+            for rwcec in list(self._mid_paths):
+                mid_path = self._mid_paths[rwcec].get_path()
+                index = -1
+                for i in range(0, len(mid_path)):
+                    node = mid_path[i][0]
+                    if node == child:
+                        index = i
+                        break
+                if index > -1:
+                    new_path = path + list(mid_path[index:])
+                    newrwcec = 0
+                    for node, wcec in new_path:
+                        newrwcec += wcec
+                    tmp_path = CFGPath(newrwcec, new_path)
+                    self._mid_paths[newrwcec] = tmp_path
+                    if newrwcec > bestrwcec:
+                        bestrwcec = tmp_path.get_path_rwcec()
+                        if (cfg_path is None or tmp_path.get_path_rwcec() >
+                                    cfg_path.get_path_rwcec()):
+                            cfg_path = tmp_path
+                            bestrwcec = cfg_path.get_path_rwcec()
+            return cfg_path
+
         for i in range(1, child.get_loop_iters() + 1):
             if i <= child.get_loop_iters():
                 loop_wcec = child.get_refnode_rwcec() - child.get_wcec()
@@ -260,19 +286,41 @@ class CFGPaths(object):
             else: # there is no loop iteration
                 loop_wcec = child.get_wcec()
 
-            data = (child, loop_wcec)
-            path.append(data)
-            tmp_path = self._find_mid_path(child, path,
-                    newrwcec + loop_wcec, urwcec, lrwcec, bestrwcec)
-            path.remove(data)
+            if (child.get_start_line() not in self._visited_loops
+                        or self._mid_paths == {}):
+                data = (child, loop_wcec)
+                path.append(data)
+                tmp_path = self._find_mid_path(child, path,
+                        newrwcec + loop_wcec, urwcec, lrwcec, bestrwcec)
+                path.remove(data)
+                self._visited_loops[child.get_start_line()] = len(
+                        self._mid_paths)
+            else:
+                prev_loop_wcec = child.get_refnode_rwcec() - child.get_wcec()
+                prev_loop_wcec = float(prev_loop_wcec)
+                prev_loop_wcec = child.get_wcec() + (prev_loop_wcec / (i - 1))
+                prev_loop_wcec = int(math.ceil(prev_loop_wcec))
+                data = (child, prev_loop_wcec)
+                for rwcec in list(self._mid_paths):
+                    if data in self._mid_paths[rwcec].get_path():
+                        new_path = list(self._mid_paths[rwcec].get_path())
+                        index = new_path.index(data)
+                        new_data = (child, loop_wcec)
+                        new_path[index] = new_data
+                        newrwcec = rwcec - prev_loop_wcec + loop_wcec
+                        if lrwcec < newrwcec and newrwcec < urwcec:
+                            # keep the found path in cache
+                            self._mid_paths[newrwcec] = CFGPath(newrwcec,
+                                    new_path)
+                            if newrwcec > bestrwcec:
+                                tmp_path = CFGPath(newrwcec, new_path)
+                                bestrwcec = tmp_path.get_path_rwcec()
 
             # set the greatest cfg path by exploring each loop iteration
             if (tmp_path is not None
                     and (cfg_path is None or tmp_path.get_path_rwcec() >
                         cfg_path.get_path_rwcec())):
                 cfg_path = tmp_path
-
-            if cfg_path is not None:
                 bestrwcec = cfg_path.get_path_rwcec()
 
         return cfg_path
