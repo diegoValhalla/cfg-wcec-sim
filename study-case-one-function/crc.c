@@ -45,10 +45,11 @@
 /*                                                                       */
 /*************************************************************************/
 
+#define MAX 42
 typedef unsigned char uchar;
 
 int main(void) {
-    unsigned char lin[256] = "asdffeagewaHAFEFaeDsFEawFdsFaefaeerdjgp";
+    unsigned char lin[MAX] = "asdffeagewaHAFEFaeDsFEawFdsFaefaeerdjgp";
     unsigned short i1, i2;
     unsigned long  n;
 
@@ -61,15 +62,15 @@ int main(void) {
     short jinit = 0;
     int jrev = 1;
 
-    static unsigned short icrctb[256], init = 0;
-    static uchar rchr[256];
+    static unsigned short icrctb[MAX], init = 0;
+    static uchar rchr[MAX];
     unsigned short tmp1, tmp2, j, cword = crc;
     static uchar it[16] = { 0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15 };
 
     if (!init) {
         init = 1;
         j = 0;
-        while (j <= 255) { //@LOOP 255
+        while (j <= MAX - 1) { //@LOOP 42
 
             //icrctb[j] = icrc1(j << 8, (uchar)0);
             unsigned short crc1 = j << 8;
@@ -102,7 +103,7 @@ int main(void) {
     }
 
     j = 1;
-    while (j <= len) { //@LOOP 42
+    while (j <= len) { //@LOOP 40
         if (jrev < 0) {
             tmp1 = rchr[lin[j]] ^ ((uchar)(cword >> 8));
         }
@@ -138,7 +139,7 @@ int main(void) {
     if (!init) {
         init = 1;
         j = 0;
-        while (j <= 255) { //@LOOP 255
+        while (j <= MAX - 1) { //@LOOP 42
 
             //icrctb[j] = icrc1(j << 8, (uchar)0);
             unsigned short crc1 = j << 8;

@@ -141,93 +141,59 @@ int main() {
             i++;
         }
 
-            /*  Main FFT Loops  */
-            if (flag) {
-                sign = 1.0;
-            } else {
-                sign = -1.0;
-            }
+        /*  Main FFT Loops  */
+        if (flag) {
+            sign = 1.0;
+        } else {
+            sign = -1.0;
+        }
 
-            xp2  = n;
-            it = 0;
-            while (it < iter) { //@LOOP 10
-                xp   = xp2;
-                xp2 /= 2;
-                w    = PI / xp2;
+        xp2  = n;
+        it = 0;
+        while (it < iter) { //@LOOP 10
+            xp   = xp2;
+            xp2 /= 2;
+            w    = PI / xp2;
 
-                k = 0;
-                while (k < xp2) { //@LOOP 10
-                    arg = k * w;
-                    //wr  = cos(arg);
-                    // ------------------------------------
-                    double rad = arg;
-                    //wr = sin(PI / 2.0 - rad);
-                    rad = PI / 2.0 - rad;
-                    double app;
-                    double tmp;
+            k = 0;
+            while (k < xp2) { //@LOOP 10
+                arg = k * w;
+                //wr  = cos(arg);
+                // ------------------------------------
+                double rad = arg;
+                //wr = sin(PI / 2.0 - rad);
+                rad = PI / 2.0 - rad;
+                double app;
+                double tmp;
 
-                    double diff;
-                    int    inc = 1;
+                double diff;
+                int    inc = 1;
 
-                    while (rad > 2 * PI) { //@LOOP 5
-                        rad -= 2 * PI;
-                    }
+                while (rad > 2 * PI) { //@LOOP 5
+                    rad -= 2 * PI;
+                }
 
-                    while (rad < -2 * PI) { //@LOOP 2
-                        rad += 2 * PI;
-                    }
+                while (rad < -2 * PI) { //@LOOP 2
+                    rad += 2 * PI;
+                }
 
-                    app  = diff = rad;
-                    diff = (diff * (-(rad * rad))) /
-                           ((2.0 * inc) * (2.0 * inc + 1.0));
-                    app = app + diff;
-                    inc++;
+                app  = diff = rad;
+                diff = (diff * (-(rad * rad))) /
+                       ((2.0 * inc) * (2.0 * inc + 1.0));
+                app = app + diff;
+                inc++;
 
-                    //tmp = fabs(diff);
-                    double n = diff, f;
-                    if (n >= 0) {
-                        f = n;
-                    }
-                    else {
-                        f = -n;
-                    }
-                    tmp = f;
+                //tmp = fabs(diff);
+                double n = diff, f;
+                if (n >= 0) {
+                    f = n;
+                }
+                else {
+                    f = -n;
+                }
+                tmp = f;
 
-                    while (tmp >= 0.00001) { //@LOOP 5
-                        diff = (diff * (-(rad * rad))) /
-                               ((2.0 * inc) * (2.0 * inc + 1.0));
-                        app = app + diff;
-                        inc++;
-
-                        //tmp = fabs(diff);
-                        n = diff;
-                        if (n >= 0) {
-                            f = n;
-                        }
-                        else {
-                            f = -n;
-                        }
-                        tmp = f;
-                    }
-
-                    wr = app;
-                    // ------------------------------------
-
-
-                    //wi  = sign * sin(arg);
-                    // ------------------------------------
-                    rad = arg;
-                    inc = 1;
-
-                    while (rad > 2 * PI) { //@LOOP 5
-                        rad -= 2 * PI;
-                    }
-
-                    while (rad < -2 * PI) { //@LOOP 2
-                        rad += 2 * PI;
-                    }
-
-                    app  = diff = rad;
+                while (tmp >= 0.00001) { //@LOOP 5
                     diff = (diff * (-(rad * rad))) /
                            ((2.0 * inc) * (2.0 * inc + 1.0));
                     app = app + diff;
@@ -242,81 +208,115 @@ int main() {
                         f = -n;
                     }
                     tmp = f;
-
-                    while (tmp >= 0.00001) { //@LOOP 5
-                        diff = (diff * (-(rad * rad))) /
-                               ((2.0 * inc) * (2.0 * inc + 1.0));
-                        app = app + diff;
-                        inc++;
-
-                        //tmp = fabs(diff);
-                        n = diff;
-                        if (n >= 0) {
-                            f = n;
-                        }
-                        else {
-                            f = -n;
-                        }
-                        tmp = f;
-                    }
-                    wi = sign * app;
-                    // ------------------------------------
-
-                    i   = k - xp;
-                    j = xp;
-                    while (j <= n) { //@LOOP 10
-                        j1     = j + i;
-                        j2     = j1 + xp2;
-                        dr1    = ar[j1];
-                        dr2    = ar[j2];
-                        di1    = ai[j1];
-                        di2    = ai[j2];
-                        tr     = dr1 - dr2;
-                        ti     = di1 - di2;
-                        ar[j1] = dr1 + dr2;
-                        ai[j1] = di1 + di2;
-                        ar[j2] = tr * wr - ti * wi;
-                        ai[j2] = ti * wr + tr * wi;
-                        j += xp;
-                    }
-                    k++;
                 }
-                it++;
+
+                wr = app;
+                // ------------------------------------
+
+
+                //wi  = sign * sin(arg);
+                // ------------------------------------
+                rad = arg;
+                inc = 1;
+
+                while (rad > 2 * PI) { //@LOOP 5
+                    rad -= 2 * PI;
+                }
+
+                while (rad < -2 * PI) { //@LOOP 2
+                    rad += 2 * PI;
+                }
+
+                app  = diff = rad;
+                diff = (diff * (-(rad * rad))) /
+                       ((2.0 * inc) * (2.0 * inc + 1.0));
+                app = app + diff;
+                inc++;
+
+                //tmp = fabs(diff);
+                n = diff;
+                if (n >= 0) {
+                    f = n;
+                }
+                else {
+                    f = -n;
+                }
+                tmp = f;
+
+                while (tmp >= 0.00001) { //@LOOP 5
+                    diff = (diff * (-(rad * rad))) /
+                           ((2.0 * inc) * (2.0 * inc + 1.0));
+                    app = app + diff;
+                    inc++;
+
+                    //tmp = fabs(diff);
+                    n = diff;
+                    if (n >= 0) {
+                        f = n;
+                    }
+                    else {
+                        f = -n;
+                    }
+                    tmp = f;
+                }
+                wi = sign * app;
+                // ------------------------------------
+
+                i   = k - xp;
+                j = xp;
+                while (j <= n) { //@LOOP 10
+                    j1     = j + i;
+                    j2     = j1 + xp2;
+                    dr1    = ar[j1];
+                    dr2    = ar[j2];
+                    di1    = ai[j1];
+                    di2    = ai[j2];
+                    tr     = dr1 - dr2;
+                    ti     = di1 - di2;
+                    ar[j1] = dr1 + dr2;
+                    ai[j1] = di1 + di2;
+                    ar[j2] = tr * wr - ti * wi;
+                    ai[j2] = ti * wr + tr * wi;
+                    j += xp;
+                }
+                k++;
             }
+            it++;
+        }
 
-            /*  Digit Reverse Counter  */
-            j1 = n / 2;
-            j2 = n - 1;
-            j  = 1;
+        /*  Digit Reverse Counter  */
+        j1 = n / 2;
+        j2 = n - 1;
+        j  = 1;
 
-            i = 1;
-            while (i <= j2) { //@LOOP 7
-                if (i < j) {
-                    tr        = ar[j - 1];
-                    ti        = ai[j - 1];
-                    ar[j - 1] = ar[i - 1];
-                    ai[j - 1] = ai[i - 1];
-                    ar[i - 1] = tr;
-                    ai[i - 1] = ti;
-                }
-                k = j1;
-                while (k < j) { //@LOOP 4
-                    j -= k;
-                    k /= 2;
-                }
-                j += k;
+        i = 1;
+        while (i <= j2) { //@LOOP 7
+            if (i < j) {
+                tr        = ar[j - 1];
+                ti        = ai[j - 1];
+                ar[j - 1] = ar[i - 1];
+                ai[j - 1] = ai[i - 1];
+                ar[i - 1] = tr;
+                ai[i - 1] = ti;
+            }
+            k = j1;
+            while (k < j) { //@LOOP 4
+                j -= k;
+                k /= 2;
+            }
+            j += k;
+            i++;
+        }
+
+        if (flag != 0) {
+            w = n;
+            i = 0;
+            while (i < n) { //@LOOP 8
+                ar[i] /= w;
+                ai[i] /= w;
                 i++;
             }
-
-            if (flag != 0) {
-                w = n;
-                i = 0;
-                while (i < n) { //@LOOP 8
-                    ar[i] /= w;
-                    ai[i] /= w;
-                    i++;
-                }
-            }
+        }
     }
 
     chkerr = result;
@@ -339,93 +339,59 @@ int main() {
             i++;
         }
 
-            /*  Main FFT Loops  */
-            if (flag) {
-                sign = 1.0;
-            } else {
-                sign = -1.0;
-            }
+        /*  Main FFT Loops  */
+        if (flag) {
+            sign = 1.0;
+        } else {
+            sign = -1.0;
+        }
 
-            xp2  = n;
-            it = 0;
-            while (it < iter) { //@LOOP 10
-                xp   = xp2;
-                xp2 /= 2;
-                w    = PI / xp2;
+        xp2  = n;
+        it = 0;
+        while (it < iter) { //@LOOP 10
+            xp   = xp2;
+            xp2 /= 2;
+            w    = PI / xp2;
 
-                k = 0;
-                while (k < xp2) { //@LOOP 10
-                    arg = k * w;
-                    //wr  = cos(arg);
-                    // ------------------------------------
-                    double rad = arg;
-                    //wr = sin(PI / 2.0 - rad);
-                    rad = PI / 2.0 - rad;
-                    double app;
-                    double tmp;
+            k = 0;
+            while (k < xp2) { //@LOOP 10
+                arg = k * w;
+                //wr  = cos(arg);
+                // ------------------------------------
+                double rad = arg;
+                //wr = sin(PI / 2.0 - rad);
+                rad = PI / 2.0 - rad;
+                double app;
+                double tmp;
 
-                    double diff;
-                    int    inc = 1;
+                double diff;
+                int    inc = 1;
 
-                    while (rad > 2 * PI) { //@LOOP 5
-                        rad -= 2 * PI;
-                    }
+                while (rad > 2 * PI) { //@LOOP 5
+                    rad -= 2 * PI;
+                }
 
-                    while (rad < -2 * PI) { //@LOOP 2
-                        rad += 2 * PI;
-                    }
+                while (rad < -2 * PI) { //@LOOP 2
+                    rad += 2 * PI;
+                }
 
-                    app  = diff = rad;
-                    diff = (diff * (-(rad * rad))) /
-                           ((2.0 * inc) * (2.0 * inc + 1.0));
-                    app = app + diff;
-                    inc++;
+                app  = diff = rad;
+                diff = (diff * (-(rad * rad))) /
+                       ((2.0 * inc) * (2.0 * inc + 1.0));
+                app = app + diff;
+                inc++;
 
-                    //tmp = fabs(diff);
-                    double n = diff, f;
-                    if (n >= 0) {
-                        f = n;
-                    }
-                    else {
-                        f = -n;
-                    }
-                    tmp = f;
+                //tmp = fabs(diff);
+                double n = diff, f;
+                if (n >= 0) {
+                    f = n;
+                }
+                else {
+                    f = -n;
+                }
+                tmp = f;
 
-                    while (tmp >= 0.00001) { //@LOOP 5
-                        diff = (diff * (-(rad * rad))) /
-                               ((2.0 * inc) * (2.0 * inc + 1.0));
-                        app = app + diff;
-                        inc++;
-
-                        //tmp = fabs(diff);
-                        n = diff;
-                        if (n >= 0) {
-                            f = n;
-                        }
-                        else {
-                            f = -n;
-                        }
-                        tmp = f;
-                    }
-
-                    wr = app;
-                    // ------------------------------------
-
-
-                    //wi  = sign * sin(arg);
-                    // ------------------------------------
-                    rad = arg;
-                    inc = 1;
-
-                    while (rad > 2 * PI) { //@LOOP 5
-                        rad -= 2 * PI;
-                    }
-
-                    while (rad < -2 * PI) { //@LOOP 2
-                        rad += 2 * PI;
-                    }
-
-                    app  = diff = rad;
+                while (tmp >= 0.00001) { //@LOOP 5
                     diff = (diff * (-(rad * rad))) /
                            ((2.0 * inc) * (2.0 * inc + 1.0));
                     app = app + diff;
@@ -440,81 +406,115 @@ int main() {
                         f = -n;
                     }
                     tmp = f;
-
-                    while (tmp >= 0.00001) { //@LOOP 5
-                        diff = (diff * (-(rad * rad))) /
-                               ((2.0 * inc) * (2.0 * inc + 1.0));
-                        app = app + diff;
-                        inc++;
-
-                        //tmp = fabs(diff);
-                        n = diff;
-                        if (n >= 0) {
-                            f = n;
-                        }
-                        else {
-                            f = -n;
-                        }
-                        tmp = f;
-                    }
-                    wi = sign * app;
-                    // ------------------------------------
-
-                    i   = k - xp;
-                    j = xp;
-                    while (j <= n) { //@LOOP 10
-                        j1     = j + i;
-                        j2     = j1 + xp2;
-                        dr1    = ar[j1];
-                        dr2    = ar[j2];
-                        di1    = ai[j1];
-                        di2    = ai[j2];
-                        tr     = dr1 - dr2;
-                        ti     = di1 - di2;
-                        ar[j1] = dr1 + dr2;
-                        ai[j1] = di1 + di2;
-                        ar[j2] = tr * wr - ti * wi;
-                        ai[j2] = ti * wr + tr * wi;
-                        j += xp;
-                    }
-                    k++;
                 }
-                it++;
+
+                wr = app;
+                // ------------------------------------
+
+
+                //wi  = sign * sin(arg);
+                // ------------------------------------
+                rad = arg;
+                inc = 1;
+
+                while (rad > 2 * PI) { //@LOOP 5
+                    rad -= 2 * PI;
+                }
+
+                while (rad < -2 * PI) { //@LOOP 2
+                    rad += 2 * PI;
+                }
+
+                app  = diff = rad;
+                diff = (diff * (-(rad * rad))) /
+                       ((2.0 * inc) * (2.0 * inc + 1.0));
+                app = app + diff;
+                inc++;
+
+                //tmp = fabs(diff);
+                n = diff;
+                if (n >= 0) {
+                    f = n;
+                }
+                else {
+                    f = -n;
+                }
+                tmp = f;
+
+                while (tmp >= 0.00001) { //@LOOP 5
+                    diff = (diff * (-(rad * rad))) /
+                           ((2.0 * inc) * (2.0 * inc + 1.0));
+                    app = app + diff;
+                    inc++;
+
+                    //tmp = fabs(diff);
+                    n = diff;
+                    if (n >= 0) {
+                        f = n;
+                    }
+                    else {
+                        f = -n;
+                    }
+                    tmp = f;
+                }
+                wi = sign * app;
+                // ------------------------------------
+
+                i   = k - xp;
+                j = xp;
+                while (j <= n) { //@LOOP 10
+                    j1     = j + i;
+                    j2     = j1 + xp2;
+                    dr1    = ar[j1];
+                    dr2    = ar[j2];
+                    di1    = ai[j1];
+                    di2    = ai[j2];
+                    tr     = dr1 - dr2;
+                    ti     = di1 - di2;
+                    ar[j1] = dr1 + dr2;
+                    ai[j1] = di1 + di2;
+                    ar[j2] = tr * wr - ti * wi;
+                    ai[j2] = ti * wr + tr * wi;
+                    j += xp;
+                }
+                k++;
             }
+            it++;
+        }
 
-            /*  Digit Reverse Counter  */
-            j1 = n / 2;
-            j2 = n - 1;
-            j  = 1;
+        /*  Digit Reverse Counter  */
+        j1 = n / 2;
+        j2 = n - 1;
+        j  = 1;
 
-            i = 1;
-            while (i <= j2) { //@LOOP 7
-                if (i < j) {
-                    tr        = ar[j - 1];
-                    ti        = ai[j - 1];
-                    ar[j - 1] = ar[i - 1];
-                    ai[j - 1] = ai[i - 1];
-                    ar[i - 1] = tr;
-                    ai[i - 1] = ti;
-                }
-                k = j1;
-                while (k < j) { //@LOOP 4
-                    j -= k;
-                    k /= 2;
-                }
-                j += k;
+        i = 1;
+        while (i <= j2) { //@LOOP 7
+            if (i < j) {
+                tr        = ar[j - 1];
+                ti        = ai[j - 1];
+                ar[j - 1] = ar[i - 1];
+                ai[j - 1] = ai[i - 1];
+                ar[i - 1] = tr;
+                ai[i - 1] = ti;
+            }
+            k = j1;
+            while (k < j) { //@LOOP 4
+                j -= k;
+                k /= 2;
+            }
+            j += k;
+            i++;
+        }
+
+        if (flag != 0) {
+            w = n;
+            i = 0;
+            while (i < n) { //@LOOP 8
+                ar[i] /= w;
+                ai[i] /= w;
                 i++;
             }
-
-            if (flag != 0) {
-                w = n;
-                i = 0;
-                while (i < n) { //@LOOP 8
-                    ar[i] /= w;
-                    ai[i] /= w;
-                    i++;
-                }
-            }
+        }
     }
     chkerr = result;
 
