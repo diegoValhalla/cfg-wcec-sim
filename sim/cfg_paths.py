@@ -205,29 +205,8 @@ class CFGPaths(object):
                         newrwcec + child.get_wcec(), urwcec, lrwcec, bestrwcec)
                 path.remove(data)
             else:
-                for i in range(1, child.get_loop_iters() + 1):
-                    if i <= child.get_loop_iters():
-                        loop_wcec = child.get_refnode_rwcec() - child.get_wcec()
-                        loop_wcec = float(loop_wcec)
-                        loop_wcec = child.get_wcec() + (loop_wcec / i)
-                        loop_wcec = int(math.ceil(loop_wcec))
-                    else: # there is no loop iteration
-                        loop_wcec = child.get_wcec()
-
-                    data = (child, loop_wcec)
-                    path.append(data)
-                    tmp_path = self._find_mid_path(child, path,
-                            newrwcec + loop_wcec, urwcec, lrwcec, bestrwcec)
-                    path.remove(data)
-
-                    # set the greatest cfg path by exploring each loop iteration
-                    if (tmp_path is not None
-                            and (cfg_path is None or tmp_path.get_path_rwcec() >
-                                cfg_path.get_path_rwcec())):
-                        cfg_path = tmp_path
-
-                    if cfg_path is not None:
-                        bestrwcec = cfg_path.get_path_rwcec()
+                tmp_path = self._check_mid_path_loops(child, path,
+                        newrwcec, urwcec, lrwcec, bestrwcec)
 
             # set the greatest cfg path
             if (tmp_path is not None
@@ -268,3 +247,32 @@ class CFGPaths(object):
         if mid_rwcec > 0:
             return self._mid_paths[mid_rwcec]
         return None
+
+    def _check_mid_path_loops(self, child, path, newrwcec, urwcec, lrwcec,
+            bestrwcec):
+        tmp_path = cfg_path = None
+        for i in range(1, child.get_loop_iters() + 1):
+            if i <= child.get_loop_iters():
+                loop_wcec = child.get_refnode_rwcec() - child.get_wcec()
+                loop_wcec = float(loop_wcec)
+                loop_wcec = child.get_wcec() + (loop_wcec / i)
+                loop_wcec = int(math.ceil(loop_wcec))
+            else: # there is no loop iteration
+                loop_wcec = child.get_wcec()
+
+            data = (child, loop_wcec)
+            path.append(data)
+            tmp_path = self._find_mid_path(child, path,
+                    newrwcec + loop_wcec, urwcec, lrwcec, bestrwcec)
+            path.remove(data)
+
+            # set the greatest cfg path by exploring each loop iteration
+            if (tmp_path is not None
+                    and (cfg_path is None or tmp_path.get_path_rwcec() >
+                        cfg_path.get_path_rwcec())):
+                cfg_path = tmp_path
+
+            if cfg_path is not None:
+                bestrwcec = cfg_path.get_path_rwcec()
+
+        return cfg_path
