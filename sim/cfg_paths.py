@@ -279,21 +279,21 @@ class CFGPaths(object):
                             bestrwcec = cfg_path.get_path_rwcec()
             return cfg_path
 
+        num_of_mid_paths = len(self._mid_paths)
         for i in range(0, child.get_loop_iters() + 1):
-            #if i <= child.get_loop_iters():
             loop_wcec = child.get_refnode_rwcec() - child.get_wcec()
             loop_wcec = float(loop_wcec) / child.get_loop_iters()
             loop_wcec = child.get_wcec() + (loop_wcec * i)
             loop_wcec = int(math.ceil(loop_wcec))
-            #else: # there is no loop iteration
-                #loop_wcec = child.get_wcec()
 
-            if self._mid_paths == {}:
+            if (self._mid_paths == {}
+                    or child.get_start_line() not in self._visited_loops):
                 data = (child, loop_wcec)
                 path.append(data)
                 tmp_path = self._find_mid_path(child, path,
                         newrwcec + loop_wcec, urwcec, lrwcec, bestrwcec)
                 path.remove(data)
+                self._visited_loops[child.get_start_line()] = 1
             else:
                 prev_loop_wcec = child.get_refnode_rwcec() - child.get_wcec()
                 prev_loop_wcec = float(prev_loop_wcec) / child.get_loop_iters()
@@ -321,5 +321,6 @@ class CFGPaths(object):
                 cfg_path = tmp_path
                 bestrwcec = cfg_path.get_path_rwcec()
 
-        self._visited_loops[child.get_start_line()] = len(self._mid_paths)
+        found_mid_paths = len(self._mid_paths) - num_of_mid_paths
+        self._visited_loops[child.get_start_line()] = found_mid_paths
         return cfg_path

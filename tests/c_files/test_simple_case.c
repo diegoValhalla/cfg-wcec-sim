@@ -24,5 +24,21 @@ int main() {
         }
     }
 
+    while (a > b) { //@LOOP 6
+        a--;
+        if (a < b) {
+            a += 2*b;
+            a *= 5;
+        } else {
+            a += 2*b;
+        }
+    }
+
+    if (a < b) {
+        a += 2*b;
+        a += 2*b;
+        a *= 5;
+    }
+
     return 0;
 }
