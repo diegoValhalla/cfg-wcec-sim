@@ -1,0 +1,146 @@
+
+****** Result details ******
+(mine - worst)
+
+  F: 100.00 MHz
+    Cycles: 29186.00
+    Time: 291.86s
+    Energy: 145930.00J
+
+  *** Summary ***
+    RWCEC: 29186.00
+    Deadline: 5.00s
+    Time Spent: 291.86s
+    Total Energy: 145930.00J
+
+**** Energy Reduction (based on greatest frequency) ****
+(mine - worst)
+
+  RWCEC: 29186.00
+  Deadline: 5.00s
+  Time Spent: 291.86s
+  Max frequency: 100.00 MHz
+  Max energy: 145930.00J
+  Energy spent: 145930.00J
+  Energy reduction: 0.00%
+
+
+****** Result details ******
+(valentin - worst)
+
+  F: 100.00 MHz
+    Cycles: 29186.00
+    Time: 291.86s
+    Energy: 145930.00J
+
+  *** Summary ***
+    RWCEC: 29186.00
+    Deadline: 5.00s
+    Time Spent: 291.86s
+    Total Energy: 145930.00J
+
+**** Energy Reduction (based on greatest frequency) ****
+(valentin - worst)
+
+  RWCEC: 29186.00
+  Deadline: 5.00s
+  Time Spent: 291.86s
+  Max frequency: 100.00 MHz
+  Max energy: 145930.00J
+  Energy spent: 145930.00J
+  Energy reduction: 0.00%
+
+
+****** Result details ******
+(mine - best)
+
+  F: 100.00 MHz
+    Cycles: 140.00
+    Time: 1.40s
+    Energy: 700.00J
+
+  F: 80.00 MHz
+    Cycles: 79.00
+    Time: 0.99s
+    Energy: 316.00J
+
+  F: 60.00 MHz
+    Cycles: 247.00
+    Time: 4.12s
+    Energy: 815.10J
+
+  F: 20.00 MHz
+    Cycles: 46.00
+    Time: 2.30s
+    Energy: 92.00J
+
+  *** Summary ***
+    RWCEC: 512.00
+    Deadline: 5.00s
+    Time Spent: 8.80s
+    Total Energy: 1923.10J
+
+**** Energy Reduction (based on greatest frequency) ****
+(mine - best)
+
+  RWCEC: 512.00
+  Deadline: 5.00s
+  Time Spent: 8.80s
+  Max frequency: 100.00 MHz
+  Max energy: 2560.00J
+  Energy spent: 1923.10J
+  Energy reduction: 24.88%
+
+
+****** Result details ******
+(valentin - best)
+
+  F: 100.00 MHz
+    Cycles: 512.00
+    Time: 5.12s
+    Energy: 2560.00J
+
+  *** Summary ***
+    RWCEC: 512.00
+    Deadline: 5.00s
+    Time Spent: 5.12s
+    Total Energy: 2560.00J
+
+**** Energy Reduction (based on greatest frequency) ****
+(valentin - best)
+
+  RWCEC: 512.00
+  Deadline: 5.00s
+  Time Spent: 5.12s
+  Max frequency: 100.00 MHz
+  Max energy: 2560.00J
+  Energy spent: 2560.00J
+  Energy reduction: 0.00%
+
+
+**** Energy Reduction (based on greatest frequency) ****
+(mine - average)
+
+  RWCEC: 14270.55
+  Deadline: 5.00s
+  Time Spent: 162.94s
+  Max frequency: 100.00 MHz
+  Max energy: 71352.74J
+  Energy spent: 65160.64J
+  Energy reduction: 8.68%
+
+
+**** Energy Reduction (based on greatest frequency) ****
+(valentin - average)
+
+  RWCEC: 14270.55
+  Deadline: 5.00s
+  Time Spent: 142.71s
+  Max frequency: 100.00 MHz
+  Max energy: 71352.74J
+  Energy spent: 71352.74J
+  Energy reduction: 0.00%
+
+real 180.35
+user 180.05
+sys 0.14
