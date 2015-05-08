@@ -2,7 +2,7 @@ import sys
 
 sys.path.insert(0, '../src')
 
-from cfg import cfg, cfg2graphml
+from cfg import cfg
 from sim import cfg_paths, sim
 
 
@@ -108,8 +108,8 @@ def simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
     """
     # get worst path for current proposal, valentin and koreans
     wpath = cfgpaths.find_worst_path(graph)
-    if show_result:
-        write_path(wpath)
+    #if show_result:
+        #write_path(wpath)
 
     # simulate path execution
     worst_result = simulate.start_sim(wpath, init_freq, valentin, koreans)
@@ -138,8 +138,8 @@ def simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
     """
     # get best path for current proposal, valentin and koreans
     bpath = cfgpaths.find_best_path(graph)
-    if show_result:
-        write_path(bpath)
+    #if show_result:
+        #write_path(bpath)
 
     # simulate path execution
     best_result = simulate.start_sim(bpath, init_freq, valentin, koreans)
