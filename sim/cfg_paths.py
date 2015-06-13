@@ -95,10 +95,11 @@ class CFGPaths(object):
             for entry in graph.get_entry_nodes():
                 start_node = entry.get_func_first_node()
                 path = [(start_node, start_node.get_wcec())]
-                cfg_path = self._find_mid_path(start_node, path,
-                        start_node.get_wcec(), upper_rwcec, lower_rwcec, 0)
+                self._find_mid_path(start_node, path, start_node.get_wcec(),
+                        upper_rwcec, lower_rwcec, 0)
 
-        return self._check_mid_path_cached(lower_rwcec, upper_rwcec)
+        return self._get_mid_path_cached()
+        #return self._check_mid_path_cached(lower_rwcec, upper_rwcec)
 
     def _find_worst_path(self, n, path):
         """ Use RWCEC as base to know which child of current node guides the
@@ -224,6 +225,27 @@ class CFGPaths(object):
                 cfg_path = CFGPath(newrwcec, path)
 
         return cfg_path
+
+    def _get_mid_path_cached(self):
+        """ From the list of all paths between worst and best RWCEC, return the
+            middle path of this list. If the list length if even, then the path
+            with the greatest RWCEC is returned.
+
+            Returns:
+                CFGPath object if there is a valid middle path in the list of
+                paths whose RWCEC are less than the worst and greater than the
+                best one. Return None if there is not any path.
+        """
+        paths_rwcec = self._mid_paths.keys()
+        mid_rwcec_idx = len(paths_rwcec) / 2
+
+        # get the index of the greatest RWCEC in even lengths
+        if len(paths_rwcec) % 2 == 0:
+            mid_rwcec_idx -= 1
+
+        if mid_rwcec_idx >= 0 and mid_rwcec_idx < len(paths_rwcec):
+            return self._mid_paths[paths_rwcec[mid_rwcec_idx]]
+        return None
 
     def _check_mid_path_cached(self, lrwcec, urwcec):
         """ Check if, for the given bounds, there is a middle path in cache

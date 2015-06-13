@@ -106,7 +106,6 @@ def simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             show_result (boolean): if result information should be print in
                 standard output.
     """
-    # get worst path for current proposal, valentin and koreans
     wpath = cfgpaths.find_worst_path(graph)
     #if show_result:
         #write_path(wpath)
@@ -136,7 +135,6 @@ def simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             show_result (boolean): if result information should be print in
                 standard output.
     """
-    # get best path for current proposal, valentin and koreans
     bpath = cfgpaths.find_best_path(graph)
     #if show_result:
         #write_path(bpath)
@@ -166,40 +164,22 @@ def simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             show_result (boolean): if result information should be print in
                 standard output.
     """
-    # get middle path for current proposal, valentin and koreans
     wpath = cfgpaths.find_worst_path(graph)
     bpath = cfgpaths.find_best_path(graph)
     mpath = cfgpaths.find_mid_path(graph, wpath.get_path_rwcec(),
-            bpath.get_path_rwcec())
-
-    mid_paths_count = 0
-    avrg_rwcec = 0
-    avrg_time_spent = 0
-    avrg_energy_consumed = 0
-    while mpath is not None:
-        mid_paths_count += 1
-        #print mid_paths_count
-        #if show_result:
-            #write_path(mpath)
-        mid_result = simulate.start_sim(mpath, init_freq, valentin, koreans)
-
-        for freq, cycles in mid_result:
-            avrg_rwcec += cycles
-            avrg_time_spent += float(cycles) / freq
-            avrg_energy_consumed += (float(cycles) *
-                    simulate.get_volt_from_freq(freq))
-
-        mpath = cfgpaths.find_mid_path(graph, mpath.get_path_rwcec(),
                 bpath.get_path_rwcec())
+    #if show_result:
+        #write_path(bpath)
 
-    avrg_rwcec = float(avrg_rwcec) / mid_paths_count
-    avrg_time_spent = float(avrg_time_spent) / mid_paths_count
-    avrg_energy_consumed = float(avrg_energy_consumed) / mid_paths_count
+    # simulate path execution
+    mid_result = simulate.start_sim(mpath, init_freq, valentin, koreans)
 
     # show results
-    if mid_paths_count > 0 and show_result:
-        simulate.compare_result_to_worst_freq('average', avrg_rwcec, [],
-                avrg_time_spent, avrg_energy_consumed, valentin, koreans)
+    if isinstance(mid_result, list) and show_result:
+        simulate.print_results('middle', mpath.get_path_rwcec(), mid_result,
+                valentin, koreans)
+        simulate.compare_result_to_worst_freq('middle', mpath.get_path_rwcec(),
+                mid_result, 0, 0, valentin, koreans)
 
 def write_path(path):
     """ Print RWCEC and the start line of each node of the given path in

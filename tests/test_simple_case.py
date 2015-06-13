@@ -62,17 +62,29 @@ class TestSimpleCase(unittest.TestCase):
         bpath = self._cfgpaths.find_best_path(self._graph)
         self._check_result(bpath, True, False, result_check, result_ok)
 
-    def test_average_case_mine(self):
-        test_name = self.test_average_case_mine.__name__
+    def test_middle_case_mine(self):
+        test_name = self.test_middle_case_mine.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
-        self._check_average_result(False, False, result_check, result_ok)
 
-    def test_average_case_valentin(self):
-        test_name = self.test_average_case_valentin.__name__
+        self._init_data()
+        wpath = self._cfgpaths.find_worst_path(self._graph)
+        bpath = self._cfgpaths.find_best_path(self._graph)
+        mpath = self._cfgpaths.find_mid_path(self._graph,
+                    wpath.get_path_rwcec(), bpath.get_path_rwcec())
+        self._check_result(mpath, False, False, result_check, result_ok)
+
+    def test_middle_case_valentin(self):
+        test_name = self.test_middle_case_valentin.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
-        self._check_average_result(True, False, result_check, result_ok)
+
+        self._init_data()
+        wpath = self._cfgpaths.find_worst_path(self._graph)
+        bpath = self._cfgpaths.find_best_path(self._graph)
+        mpath = self._cfgpaths.find_mid_path(self._graph,
+                    wpath.get_path_rwcec(), bpath.get_path_rwcec())
+        self._check_result(bpath, True, False, result_check, result_ok)
 
     def _read_config_file(self):
         """ Get task and environment information of a configuration file.
@@ -145,61 +157,6 @@ class TestSimpleCase(unittest.TestCase):
         with open(result_check, 'w') as f:
             for elem in result_list:
                 f.write(str(elem) + '\n')
-
-        test_assert = False
-        with open(result_check, 'rU') as check_file,\
-                open(result_ok, 'rU') as ok_file:
-            check = check_file.read()
-            ok = ok_file.read()
-            test_assert = (check == ok)
-
-        self.assertTrue(test_assert)
-        os.remove(result_check)
-
-    def _check_average_result(self, valentin, koreans, result_check, result_ok):
-        """ Simulate average path execution and check if the result matches.
-
-            Args:
-                valentin (boolean): if Valentin's idea should be used
-                koreans (boolean): if Koreans' idea should be used
-                result_check (string): file name to write test result
-                result_ok (string): file name that should be used to check
-                    result.
-        """
-        self._init_data()
-
-        # get middle path for current proposal, valentin and koreans
-        wpath = self._cfgpaths.find_worst_path(self._graph)
-        bpath = self._cfgpaths.find_best_path(self._graph)
-        mpath = self._cfgpaths.find_mid_path(self._graph,
-                wpath.get_path_rwcec(), bpath.get_path_rwcec())
-
-        mid_paths_count = 0
-        avrg_rwcec = 0
-        avrg_time_spent = 0
-        avrg_energy_consumed = 0
-        while mpath is not None:
-            mid_paths_count += 1
-            mid_result = self._simulate.start_sim(mpath, self._init_freq,
-                    valentin, koreans)
-
-            for freq, cycles in mid_result:
-                avrg_rwcec += cycles
-                avrg_time_spent += float(cycles) / freq
-                avrg_energy_consumed += (float(cycles) *
-                        self._simulate.get_volt_from_freq(freq))
-
-            mpath = self._cfgpaths.find_mid_path(self._graph,
-                    mpath.get_path_rwcec(), bpath.get_path_rwcec())
-
-        avrg_rwcec = float(avrg_rwcec) / mid_paths_count
-        avrg_time_spent = float(avrg_time_spent) / mid_paths_count
-        avrg_energy_consumed = float(avrg_energy_consumed) / mid_paths_count
-
-        with open(result_check, 'w') as f:
-            f.write(str(avrg_rwcec) + '\n')
-            f.write(str(avrg_time_spent) + '\n')
-            f.write(str(avrg_energy_consumed) + '\n')
 
         test_assert = False
         with open(result_check, 'rU') as check_file,\
