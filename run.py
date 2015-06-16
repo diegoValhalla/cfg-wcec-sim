@@ -6,7 +6,7 @@ from cfg import cfg
 from sim import cfg_paths, sim
 
 
-def run(filename):
+def run(filename, config_file='sim.config'):
     """ Run simulation by first getting the task CFG, then simulating path
         execution on the given C file.
 
@@ -18,7 +18,7 @@ def run(filename):
     graph.make_cfg()
 
     # get and initialize data for simulation
-    deadline, init_freq, freqs_volt = read_config_file()
+    deadline, init_freq, freqs_volt = read_config_file(config_file)
     cfgpaths = cfg_paths.CFGPaths()
     simulate = sim.SimDVFS(deadline, freqs_volt)
 
@@ -55,7 +55,7 @@ def simulation(graph, init_freq, cfgpaths, simulate):
     #simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
-def read_config_file(config_file_name='sim.config'):
+def read_config_file(config_file):
     """ Get task and environment information of a configuration file.
 
         Args:
@@ -71,7 +71,7 @@ def read_config_file(config_file_name='sim.config'):
     freqs_volt = {}
     freqs = []
     volts = []
-    with open(config_file_name, 'rU') as f:
+    with open(config_file, 'rU') as f:
         lines = f.readlines()
         try:
             deadline = float(lines[0].split()[0])
@@ -198,5 +198,7 @@ def write_path(path):
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('Too few arguments')
-    else:
+    elif len(sys.argv) == 2:
         run(sys.argv[1])
+    else:
+        run(sys.argv[1], sys.argv[2])
