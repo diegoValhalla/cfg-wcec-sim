@@ -75,10 +75,10 @@ def read_config_file(config_file_name='sim.config'):
         lines = f.readlines()
         try:
             deadline = float(lines[0].split()[0])
+            init_freq = float(lines[0].split()[1])
 
             for freq in lines[1].split():
                 freqs.append(float(freq))
-            init_freq = max(freqs)
 
             for volt in lines[2].split():
                 volts.append(float(volt))
