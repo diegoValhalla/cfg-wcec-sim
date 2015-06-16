@@ -31,7 +31,7 @@ class SimDVFS(object):
                 by the given frequency)
     """
     def __init__(self, deadline=0, freqs_volt={}):
-        self._freqs_available = list(freqs_volt.keys())
+        self._freqs_available = sorted(list(freqs_volt.keys()))
         self._freqs_volt = freqs_volt
         self._deadline = deadline
         self._typeB_overhead = 0
@@ -80,6 +80,11 @@ class SimDVFS(object):
 
         if koreans:
             self._curfreq = cfg_path.get_path_rwcec() / self._deadline
+            for i in range(0, len(self._freqs_available)):
+                if (i + 1 == len(self._freqs_available)
+                        or self._curfreq < self._freqs_available[i]):
+                    self._curfreq = self._freqs_available[i]
+                    break
         else:
             self._curfreq = init_freq
 
@@ -93,9 +98,9 @@ class SimDVFS(object):
                 child = path[i + 1][0]
                 if (n.get_type() == CFGNodeType.IF
                         or n.get_type() == CFGNodeType.ELSE_IF):
-                    self._check_typeB_edge(n, child, koreans)
+                    self._check_typeB_edge(n, child)
                 elif n.get_type() == CFGNodeType.PSEUDO:
-                    self._check_typeL_edge(n, wcec, child, koreans)
+                    self._check_typeL_edge(n, wcec, child)
 
         # store last information
         if self._cycles_consumed != 0:
@@ -103,7 +108,7 @@ class SimDVFS(object):
 
         return self._freq_cycles_consumed
 
-    def _check_typeB_edge(self, n, child, koreans=False):
+    def _check_typeB_edge(self, n, child):
         """ Check if current child has a RWCEC less than the greatest RWCEC of
             a successor of current node. If it is, so this is a type-B edge.
             Then, compute typeB speed update ratio and change frequency if it is
@@ -119,7 +124,7 @@ class SimDVFS(object):
         bjline = child.get_start_line()
         if rwcec_bj < rwcec_succbi:
             ratio = self._compute_typeB_sur(rwcec_succbi, rwcec_bj)
-            self._change_freq(ratio, koreans)
+            self._change_freq(ratio)
 
     def _compute_typeB_sur(self, rwcec_wsbi, rwcec_bj):
         """ Compute speed update ratio from type-B edge
@@ -136,7 +141,7 @@ class SimDVFS(object):
             return float(1)
         return float(rwcec_bj) / (rwcec_wsbi - self._typeB_overhead)
 
-    def _check_typeL_edge(self, n, loop_wcec, child, koreans=False):
+    def _check_typeL_edge(self, n, loop_wcec, child):
         """ Compute typeL speed update ratio by using how many loop iterations
             were done in the given path and its WCEC of one execution. Then,
             change frequency if it is possible.
@@ -159,7 +164,7 @@ class SimDVFS(object):
 
         ratio = self._compute_typeL_sur(loop_wcec_once, loop_after_rwcec,
                 loop_max_iter, runtime_iter)
-        self._change_freq(ratio, koreans)
+        self._change_freq(ratio)
 
     def _compute_typeL_sur(self, loop_wcec_once, loop_after_rwcec,
                 loop_max_iter, runtime_iter):
@@ -202,7 +207,7 @@ class SimDVFS(object):
         """
         return loop_wcec_once * (loop_max_iter - runtime_iter)
 
-    def _change_freq(self, ratio, koreans=False):
+    def _change_freq(self, ratio):
         """ Change frequency if it is possible by checking the given ratio
             value. If it is greater or equal than one, change it will not
             improve energy efficiency. Otherwise, map the new frequency to the
@@ -216,24 +221,20 @@ class SimDVFS(object):
         """
         if ratio >= 1: return
         newfreq = self._curfreq * ratio
-        if koreans:
-            if newfreq < self._curfreq:
-                self._update_data(newfreq)
-        else:
-            newfreq = math.ceil(newfreq)
-            if newfreq < self._curfreq:
-                # check for an available frequency - ceil operation
-                # check for the smallest value that is greater than or equal to
-                # new frequency
-                set_freq = 0
-                for freq in self._freqs_available:
-                    if freq >= newfreq and (set_freq == 0 or freq <= set_freq):
-                        set_freq = freq
-                # if the new frequency value mapped into frequency set is equal
-                # to current frequency, it does not update data, because
-                # frequency is the same as before
-                if set_freq != 0 and set_freq != self._curfreq:
-                    self._update_data(set_freq)
+        newfreq = math.ceil(newfreq)
+        if newfreq < self._curfreq:
+            # check for an available frequency - ceil operation
+            # check for the smallest value that is greater than or equal to
+            # new frequency
+            set_freq = 0
+            for freq in self._freqs_available:
+                if freq >= newfreq and (set_freq == 0 or freq <= set_freq):
+                    set_freq = freq
+            # if the new frequency value mapped into frequency set is equal
+            # to current frequency, it does not update data, because
+            # frequency is the same as before
+            if set_freq != 0 and set_freq != self._curfreq:
+                self._update_data(set_freq)
 
     def _update_data(self, newfreq):
         """ Save the history of how many cycles where consumed using the
