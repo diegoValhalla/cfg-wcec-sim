@@ -96,8 +96,7 @@ class SimDVFS(object):
             # always check with the pair (parent, child)
             if valentin == False and i + 1 < len(path):
                 child = path[i + 1][0]
-                if (n.get_type() == CFGNodeType.IF
-                        or n.get_type() == CFGNodeType.ELSE_IF):
+                if n.get_type() == CFGNodeType.IF:
                     self._check_typeB_edge(n, child)
                 elif n.get_type() == CFGNodeType.PSEUDO:
                     self._check_typeL_edge(n, wcec, child)
