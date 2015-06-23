@@ -236,7 +236,7 @@ class CFGPaths(object):
                 paths whose RWCEC are less than the worst and greater than the
                 best one. Return None if there is not any path.
         """
-        paths_rwcec = self._mid_paths.keys()
+        paths_rwcec = sorted(self._mid_paths.keys(), reverse=True)
         mid_rwcec_idx = len(paths_rwcec) / 2
 
         # get the index of the greatest RWCEC in even lengths
