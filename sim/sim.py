@@ -55,7 +55,7 @@ class SimDVFS(object):
         """
         return self._freqs_volt[freq]
 
-    def start_sim(self, cfg_path, init_freq=0, valentin=False, koreans=False):
+    def start_sim(self, cfg_path, init_freq=0, valentin=False):
         """ Start path execution and check for each typeB and typeL edges.
 
             Note: if Valentin's and Koreans' idea are both false, so they are
@@ -65,7 +65,6 @@ class SimDVFS(object):
                 cfg_path (CFGPath): object contains the path for execution
                 init_freq (float): initial frequency to be used
                 valentin (boolean): if Valentin's idea should be used
-                koreans (boolean): if Koreans' idea should be used
 
             Returns:
                 (list) List where each element is a tuple made by the frequency
@@ -77,17 +76,7 @@ class SimDVFS(object):
         if not isinstance(cfg_path, CFGPath): return
 
         self._init_data()
-
-        if koreans:
-            self._curfreq = cfg_path.get_path_rwcec() / self._deadline
-            for i in range(0, len(self._freqs_available)):
-                if (i + 1 == len(self._freqs_available)
-                        or self._curfreq < self._freqs_available[i]):
-                    self._curfreq = self._freqs_available[i]
-                    break
-        else:
-            self._curfreq = init_freq
-
+        self._curfreq = init_freq
         path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]
