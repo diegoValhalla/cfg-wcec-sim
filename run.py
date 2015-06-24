@@ -49,22 +49,22 @@ def simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate):
             koreans=False, show_result=True)
     simulate_worst_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
             koreans=False, show_result=True)
-    simulate_worst_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
-            koreans=True, show_result=True)
+    #simulate_worst_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
+            #koreans=True, show_result=True)
 
     simulate_best_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
             koreans=False, show_result=True)
     simulate_best_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
             koreans=False, show_result=True)
-    simulate_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
-            koreans=True, show_result=True)
+    #simulate_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
+            #koreans=True, show_result=True)
 
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
             koreans=False, show_result=True)
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
             koreans=False, show_result=True)
-    simulate_mid_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
-            koreans=True, show_result=True)
+    #simulate_mid_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
+            #koreans=True, show_result=True)
 
 def read_config_file(config_file):
     """ Get task and environment information of a configuration file.
