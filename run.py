@@ -175,10 +175,7 @@ def simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             show_result (boolean): if result information should be print in
                 standard output.
     """
-    wpath = cfgpaths.find_worst_path(graph)
-    bpath = cfgpaths.find_best_path(graph)
-    mpath = cfgpaths.find_mid_path(graph, wpath.get_path_rwcec(),
-                bpath.get_path_rwcec())
+    mpath = cfgpaths.find_middle_path(graph)
     #if show_result:
         #write_path(bpath)
 
