@@ -86,12 +86,8 @@ class CFGPaths(object):
                 best one. Return None if there is not any path.
         """
         all_paths = self._find_all_paths(graph)
-        paths_rwcec = sorted(all_paths.keys(), reverse=True)
+        paths_rwcec = sorted(all_paths.keys())
         mid_rwcec_idx = len(paths_rwcec) / 2
-
-        # get the index of the greatest RWCEC in even lengths
-        if len(paths_rwcec) % 2 == 0:
-            mid_rwcec_idx -= 1
 
         if mid_rwcec_idx >= 0 and mid_rwcec_idx < len(paths_rwcec):
             return all_paths[paths_rwcec[mid_rwcec_idx]]
