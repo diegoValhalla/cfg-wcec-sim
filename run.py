@@ -52,11 +52,11 @@ def simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate):
     #simulate_worst_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
-    simulate_best_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
-            koreans=False, show_result=True)
-    simulate_best_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
-            koreans=False, show_result=True)
-    #simulate_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
+    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
+            valentin=False, koreans=False, show_result=True)
+    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
+            valentin=True, koreans=False, show_result=True)
+    #simulate_approx_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
@@ -131,9 +131,9 @@ def simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
         simulate.compare_result_to_worst_freq('worst', wpath.get_path_rwcec(),
                 worst_result, 0, 0, valentin, koreans)
 
-def simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
-        koreans=False, show_result=False):
-    """ Start simulation of best path.
+def simulate_approx_best_path(graph, init_freq, cfgpaths, simulate,
+        valentin=False, koreans=False, show_result=False, per_cent=0.1):
+    """ Start simulation of approximate best path.
 
         Args:
             graph (CFG): control flow graph of the given C file
@@ -145,8 +145,13 @@ def simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
             koreans (boolean): if Koreans' idea should be used
             show_result (boolean): if result information should be print in
                 standard output.
+            per_cent (float): how much per cent from WCEC should be the
+                approximate best path.
     """
-    bpath = cfgpaths.find_best_path(graph)
+    bpath = cfgpaths.find_approximate_best_path(graph, per_cent)
+    if bpath is None:
+        print 'approximate best path not available for', lrate, 'and', urate
+        return
     #if show_result:
         #write_path(bpath)
 
@@ -155,10 +160,10 @@ def simulate_best_path(graph, init_freq, cfgpaths, simulate, valentin=False,
 
     # show results
     if isinstance(best_result, list) and show_result:
-        simulate.print_results('best', bpath.get_path_rwcec(), best_result,
-                valentin, koreans)
-        simulate.compare_result_to_worst_freq('best', bpath.get_path_rwcec(),
-                best_result, 0, 0, valentin, koreans)
+        simulate.print_results('approximate best', bpath.get_path_rwcec(),
+                best_result, valentin, koreans)
+        simulate.compare_result_to_worst_freq('approximate best',
+                bpath.get_path_rwcec(), best_result, 0, 0, valentin, koreans)
 
 def simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
         koreans=False, show_result=False):

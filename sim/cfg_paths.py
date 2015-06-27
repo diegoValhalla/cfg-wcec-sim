@@ -75,6 +75,34 @@ class CFGPaths(object):
             cfg_path = CFGPath(rwcec, path)
         return cfg_path
 
+    def find_approximate_best_path(self, graph, per_cent):
+        """ From the list of all paths between worst and best, return the one
+            whose number of cycles is the greatest one less or equal to the
+            given per cent of the WCEC.
+
+            Args:
+                graph (CFG): control flow graph
+                per_cent (float): how much per cent from WCEC should be the
+                    approximate best path.
+
+            Returns:
+                (CFGPath) object if there is a valid path whose RWCEC is in the
+                range of lower and upper rates. Return None if there is not any
+                path.
+        """
+        wcep = self.find_worst_path(graph)
+        if wcep is None: return None
+        all_paths = self._find_all_paths(graph)
+        paths_rwcec = sorted(all_paths.keys())
+        wcec = wcep.get_path_rwcec()
+
+        approx_path = None
+        for rwcec in paths_rwcec:
+            if rwcec > math.ceil(wcec * per_cent):
+                break
+            approx_path = self._all_paths[rwcec]
+        return approx_path
+
     def find_middle_path(self, graph):
         """ From the list of all paths between worst and best RWCEC, return the
             middle path of this list. If the list length if even, then the path

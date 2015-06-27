@@ -80,6 +80,36 @@ class TestSimpleCase(unittest.TestCase):
         bpath = self._cfgpaths.find_best_path(self._graph)
         self._check_result(bpath, False, result_check, result_ok)
 
+    def test_approx_best_case_mine(self):
+        test_name = self.test_approx_best_case_mine.__name__
+        result_ok = self._find_file(test_name + '.result')
+        result_check = self._find_file(test_name + '.check')
+
+        self._init_data()
+        approxPath = self._cfgpaths.find_approximate_best_path(self._graph,
+                0.2)
+        self._check_result(approxPath, False, result_check, result_ok)
+
+    def test_approx_best_case_valentin(self):
+        test_name = self.test_approx_best_case_valentin.__name__
+        result_ok = self._find_file(test_name + '.result')
+        result_check = self._find_file(test_name + '.check')
+
+        self._init_data()
+        approxPath = self._cfgpaths.find_approximate_best_path(self._graph,
+                0.2)
+        self._check_result(approxPath, True, result_check, result_ok)
+
+    def test_approx_best_case_koreans(self):
+        test_name = self.test_approx_best_case_koreans.__name__
+        result_ok = self._find_file(test_name + '.result')
+        result_check = self._find_file(test_name + '.check')
+
+        self._init_data()
+        approxPath = self._cfgpaths.find_approximate_best_path(self._graph,
+                0.2)
+        self._check_result(approxPath, False, result_check, result_ok)
+
     def test_middle_case_mine(self):
         test_name = self.test_middle_case_mine.__name__
         result_ok = self._find_file(test_name + '.result')
@@ -87,7 +117,7 @@ class TestSimpleCase(unittest.TestCase):
 
         self._init_data()
         mpath = self._cfgpaths.find_middle_path(self._graph)
-        #self._check_result(mpath, False, result_check, result_ok)
+        self._check_result(mpath, False, result_check, result_ok)
 
     def test_middle_case_valentin(self):
         test_name = self.test_middle_case_valentin.__name__
@@ -96,7 +126,7 @@ class TestSimpleCase(unittest.TestCase):
 
         self._init_data()
         mpath = self._cfgpaths.find_middle_path(self._graph)
-        #self._check_result(bpath, True, result_check, result_ok)
+        self._check_result(mpath, True, result_check, result_ok)
 
     def test_middle_case_koreans(self):
         test_name = self.test_middle_case_koreans.__name__
@@ -105,7 +135,7 @@ class TestSimpleCase(unittest.TestCase):
 
         self._init_data()
         mpath = self._cfgpaths.find_middle_path(self._graph)
-        #self._check_result(bpath, False, result_check, result_ok)
+        self._check_result(mpath, False, result_check, result_ok)
 
     def _read_config_file(self):
         """ Get task and environment information of a configuration file.
