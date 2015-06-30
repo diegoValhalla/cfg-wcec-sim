@@ -45,24 +45,24 @@ def simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate):
             simulate (SimDVFS): object to simulate path execution and print
                 results.
     """
-    simulate_worst_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
-            koreans=False, show_result=True)
     simulate_worst_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
+            koreans=False, show_result=True)
+    simulate_worst_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
             koreans=False, show_result=True)
     #simulate_worst_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
-    simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
-            koreans=False, show_result=True)
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
+            koreans=False, show_result=True)
+    simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
             koreans=False, show_result=True)
     #simulate_mid_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
     simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
-            valentin=False, koreans=False, show_result=True)
-    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
             valentin=True, koreans=False, show_result=True)
+    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
+            valentin=False, koreans=False, show_result=True)
     #simulate_approx_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
