@@ -52,18 +52,18 @@ def simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate):
     #simulate_worst_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
-    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
-            valentin=False, koreans=False, show_result=True)
-    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
-            valentin=True, koreans=False, show_result=True)
-    #simulate_approx_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
-            #koreans=True, show_result=True)
-
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
             koreans=False, show_result=True)
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
             koreans=False, show_result=True)
     #simulate_mid_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
+            #koreans=True, show_result=True)
+
+    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
+            valentin=False, koreans=False, show_result=True)
+    simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
+            valentin=True, koreans=False, show_result=True)
+    #simulate_approx_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
             #koreans=True, show_result=True)
 
 def read_config_file(config_file):
@@ -126,10 +126,10 @@ def simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
 
     # show results
     if isinstance(worst_result, list) and show_result:
-        simulate.print_results('worst', wpath.get_path_rwcec(), worst_result,
-                valentin, koreans)
         simulate.compare_result_to_worst_freq('worst', wpath.get_path_rwcec(),
                 worst_result, 0, 0, valentin, koreans)
+        simulate.print_results('worst', wpath.get_path_rwcec(), worst_result,
+                valentin, koreans)
 
 def simulate_approx_best_path(graph, init_freq, cfgpaths, simulate,
         valentin=False, koreans=False, show_result=False, per_cent=0.1):
@@ -160,10 +160,10 @@ def simulate_approx_best_path(graph, init_freq, cfgpaths, simulate,
 
     # show results
     if isinstance(best_result, list) and show_result:
-        simulate.print_results('approximate best', bpath.get_path_rwcec(),
-                best_result, valentin, koreans)
         simulate.compare_result_to_worst_freq('approximate best',
                 bpath.get_path_rwcec(), best_result, 0, 0, valentin, koreans)
+        simulate.print_results('approximate best', bpath.get_path_rwcec(),
+                best_result, valentin, koreans)
 
 def simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
         koreans=False, show_result=False):
@@ -189,10 +189,10 @@ def simulate_mid_path(graph, init_freq, cfgpaths, simulate, valentin=False,
 
     # show results
     if isinstance(mid_result, list) and show_result:
-        simulate.print_results('middle', mpath.get_path_rwcec(), mid_result,
-                valentin, koreans)
         simulate.compare_result_to_worst_freq('middle', mpath.get_path_rwcec(),
                 mid_result, 0, 0, valentin, koreans)
+        simulate.print_results('middle', mpath.get_path_rwcec(), mid_result,
+                valentin, koreans)
 
 def write_path(path):
     """ Print RWCEC and the start line of each node of the given path in
