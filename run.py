@@ -34,7 +34,8 @@ def run(filename, config_file='sim.config'):
     simulate = sim.SimDVFS(wcec, deadline, freqs_volt)
     simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate)
 
-def simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate):
+def simulation(graph, init_vfreq, init_kfreq, cfgpaths,
+                simulate, show_result=True):
     """ Simulate execution of worst, best and average paths of the given graph.
 
         Args:
@@ -46,25 +47,25 @@ def simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate):
                 results.
     """
     simulate_worst_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
-            koreans=False, show_result=True)
+            koreans=False, show_result=show_result)
     simulate_worst_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
-            koreans=False, show_result=True)
+            koreans=False, show_result=show_result)
     #simulate_worst_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
-            #koreans=True, show_result=True)
+            #koreans=True, show_result=show_result)
 
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=True,
-            koreans=False, show_result=True)
+            koreans=False, show_result=show_result)
     simulate_mid_path(graph, init_vfreq, cfgpaths, simulate, valentin=False,
-            koreans=False, show_result=True)
+            koreans=False, show_result=show_result)
     #simulate_mid_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
-            #koreans=True, show_result=True)
+            #koreans=True, show_result=show_result)
 
     simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
-            valentin=True, koreans=False, show_result=True)
+            valentin=True, koreans=False, show_result=show_result)
     simulate_approx_best_path(graph, init_vfreq, cfgpaths, simulate,
-            valentin=False, koreans=False, show_result=True)
+            valentin=False, koreans=False, show_result=show_result)
     #simulate_approx_best_path(graph, init_kfreq, cfgpaths, simulate, valentin=False,
-            #koreans=True, show_result=True)
+            #koreans=True, show_result=show_result)
 
 def read_config_file(config_file):
     """ Get task and environment information of a configuration file.
@@ -154,7 +155,7 @@ def simulate_approx_best_path(graph, init_freq, cfgpaths, simulate,
     """
     bpath = cfgpaths.find_approximate_best_path(graph, per_cent)
     if bpath is None:
-        print 'approximate best path not available for', lrate, 'and', urate
+        print 'approximate best path not available for', per_cent
         return
     #if show_result:
         #write_path(bpath)
