@@ -152,6 +152,7 @@ class TestSimpleCase(unittest.TestCase):
         """
         wcec = 0
         deadline = 0
+        jitter = 0
         init_freq = 0
         freqs_volt = {}
         freqs = []
@@ -171,12 +172,13 @@ class TestSimpleCase(unittest.TestCase):
 
                 wcec = float(lines[2].split()[0])
                 deadline = float(lines[2].split()[1])
-                init_freq = float(lines[2].split()[2])
+                jitter = float(lines[2].split()[2])
+                init_freq = float(lines[2].split()[3])
             except ValueError, IndexError:
                 print 'Invalid data in config file'
                 sys.exit(1)
 
-        return wcec, deadline, init_freq, freqs_volt
+        return wcec, deadline, jitter, init_freq, freqs_volt
 
     def _init_data(self):
         """ Initialize simulation data such as: graph, task's information, path
@@ -188,10 +190,10 @@ class TestSimpleCase(unittest.TestCase):
         self._graph.make_cfg()
 
         # get and initialize data for simulation
-        wcec, deadline, init_freq, freqs_volt = self._read_config_file()
+        wcec, deadline, jit, init_freq, freqs_volt = self._read_config_file()
         self._init_freq = init_freq
         self._cfgpaths = cfg_paths.CFGPaths()
-        self._simulate = sim.SimDVFS(wcec, deadline, freqs_volt)
+        self._simulate = sim.SimDVFS(wcec, deadline, jit, freqs_volt)
 
     def _check_result(self, path, valentin, result_check, result_ok):
         """ Simulate path execution and check if the result matches.

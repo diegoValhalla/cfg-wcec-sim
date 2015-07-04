@@ -15,7 +15,8 @@ class SimDVFS(object):
 
         Args:
             wcec (float): task's WCEC
-            deadline (int): task's deadline
+            deadline (float): task's deadline
+            jitter (float): task's jitter
             freqs_volt (dic): dictionary where key is the frequency and supply
                 voltage to use the given frequency is the value
             overheadB (float): cycles overhead of changing frequency in type-B
@@ -41,10 +42,11 @@ class SimDVFS(object):
                 by the given frequency)
     """
     def __init__(
-            self, wcec, deadline=0, freqs_volt={},
+            self, wcec, deadline=0, jitter=0, freqs_volt={},
             overheadB=100, overheadL=100):
         self._wcec = wcec
         self._deadline = deadline
+        self._jitter = jitter
         self._freqs_volt = freqs_volt
         self._freqs_available = sorted(list(freqs_volt.keys()))
         self._typeB_overhead = float(overheadB)
@@ -298,7 +300,7 @@ class SimDVFS(object):
         result += '  *** Summary ***\n'
         result += '    RWCEC: %.2f\n' % path_rwcec
         result += '    Deadline: %.2fs\n' % self._deadline
-        result += '    Time Spent: %.2fs\n' % total_time
+        result += '    Time Spent: %.2fs\n' % (total_time + self._jitter)
         result += '    Total Energy: %.2fJ' % total_energy
         print result
 
@@ -351,7 +353,7 @@ class SimDVFS(object):
 
         result += '  RWCEC: %.2f\n' % path_rwcec
         result += '  Deadline: %.2fs\n' % self._deadline
-        result += '  Time Spent: %.2fs\n' % time_spent
+        result += '  Time Spent: %.2fs\n' % (time_spent + self._jitter)
         result += '  Max frequency: %.2f MHz\n' % worst_freq
         result += '  Max energy: %.2fJ\n' % worst_energy
         result += '  Energy spent: %.2fJ\n' % energy_consumed
