@@ -14,9 +14,14 @@ class SimDVFS(object):
         changing it. It also prints the results.
 
         Args:
+            wcec (float): task's WCEC
             deadline (int): task's deadline
             freqs_volt (dic): dictionary where key is the frequency and supply
                 voltage to use the given frequency is the value
+            overheadB (float): cycles overhead of changing frequency in type-B
+                edges
+            overheadL (float): cycles overhead of changing frequency in type-L
+                edges
 
         Attributes:
             _freqs_available (list): list of the supported frequencies
@@ -25,23 +30,29 @@ class SimDVFS(object):
             _typeB_overhead (float): cycles overhead of typeB edges operations
             _typeL_overhead (float): cycles overhead of typeL edges operations
             _curfreq (float): current frequency being used in path execution
-            _cycles_consumed (float): cycles consumed so far in path execution
+            _cpc_consumed (float): current path cycles consumed so far in path
+                execution
+            _wcec_consumed (float): cycles consumed from WCEP
             _freq_cycles_consumed (list): list to store path execution history
                 where each element is a tuple(frequency used, cycles consumed
                 by the given frequency)
     """
-    def __init__(self, deadline=0, freqs_volt={}):
-        self._freqs_available = sorted(list(freqs_volt.keys()))
-        self._freqs_volt = freqs_volt
+    def __init__(
+            self, wcec, deadline=0, freqs_volt={},
+            overheadB=100, overheadL=100):
+        self._wcec = wcec
         self._deadline = deadline
-        self._typeB_overhead = 0
-        self._typeL_overhead = 0
+        self._freqs_volt = freqs_volt
+        self._freqs_available = sorted(list(freqs_volt.keys()))
+        self._typeB_overhead = float(overheadB)
+        self._typeL_overhead = float(overheadL)
 
     def _init_data(self):
         """ Initializes main data to keep track.
         """
         self._curfreq = 0
-        self._cycles_consumed = 0
+        self._cpc_consumed = 0
+        self._wcec_consumed = 0
         self._freq_cycles_consumed = []
 
     def get_volt_from_freq(self, freq):
@@ -80,7 +91,7 @@ class SimDVFS(object):
         path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]
-            self._cycles_consumed += wcec
+            self._cpc_consumed += wcec
             # check if n is not last node, because typeB and typeL edges are
             # always check with the pair (parent, child)
             if valentin == False and i + 1 < len(path):
@@ -91,7 +102,7 @@ class SimDVFS(object):
                     self._check_typeL_edge(n, wcec, child)
 
         # store last information
-        if self._cycles_consumed != 0:
+        if self._cpc_consumed != 0:
             self._update_data(self._curfreq)
 
         return self._freq_cycles_consumed
@@ -231,10 +242,10 @@ class SimDVFS(object):
             Args:
                 newfreq (float): new frequency to be used in path execution
         """
-        data = (self._curfreq, self._cycles_consumed)
+        data = (self._curfreq, self._cpc_consumed)
         self._freq_cycles_consumed.append(data)
         self._curfreq = newfreq
-        self._cycles_consumed = 0
+        self._cpc_consumed = 0
 
     def print_results(self, path_name, path_rwcec, freq_cycles_consumed,
             valentin, koreans):

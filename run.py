@@ -18,7 +18,7 @@ def run(filename, config_file='sim.config'):
     graph.make_cfg()
 
     # get and initialize data for simulation
-    deadline, init_vfreq, freqs_volt = read_config_file(config_file)
+    wcec, deadline, init_vfreq, freqs_volt = read_config_file(config_file)
     cfgpaths = cfg_paths.CFGPaths()
 
     # get initial frequency for Korean's idea
@@ -31,7 +31,7 @@ def run(filename, config_file='sim.config'):
             init_kfreq = freqs_available[i]
             break
 
-    simulate = sim.SimDVFS(deadline, freqs_volt)
+    simulate = sim.SimDVFS(wcec, deadline, freqs_volt)
     simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate)
 
 def simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate):
@@ -73,34 +73,38 @@ def read_config_file(config_file):
             config_file_name (string): configuration file name
 
         Returns:
+            (float) task's WCEC
             (float) task's deadline
             (float) initial frequency to be used
             (dic) freqs_volt: dictionary where key is the frequency and supply
                 voltage to use the given frequency is the value
     """
+    wcec = 0
     deadline = 0
+    init_freq = 0
     freqs_volt = {}
     freqs = []
     volts = []
     with open(config_file, 'rU') as f:
         lines = f.readlines()
         try:
-            deadline = float(lines[0].split()[0])
-            init_freq = float(lines[0].split()[1])
-
-            for freq in lines[1].split():
+            for freq in lines[0].split():
                 freqs.append(float(freq))
 
-            for volt in lines[2].split():
+            for volt in lines[1].split():
                 volts.append(float(volt))
 
             for i in range(0, len(freqs)):
                 freqs_volt[freqs[i]] = volts[i]
+
+            wcec = float(lines[2].split()[0])
+            deadline = float(lines[2].split()[1])
+            init_freq = float(lines[2].split()[2])
         except ValueError, IndexError:
             print 'Invalid data in config file'
             sys.exit(1)
 
-    return deadline, init_freq, freqs_volt
+    return wcec, deadline, init_freq, freqs_volt
 
 def simulate_worst_path(graph, init_freq, cfgpaths, simulate, valentin=False,
         koreans=False, show_result=False):

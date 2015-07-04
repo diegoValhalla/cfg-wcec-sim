@@ -144,12 +144,15 @@ class TestSimpleCase(unittest.TestCase):
                 config_file_name (string): configuration file name
 
             Returns:
+                (float) task's WCEC
                 (float) task's deadline
                 (float) initial frequency to be used
                 (dic) freqs_volt: dictionary where key is the frequency and
                     supply voltage to use the given frequency is the value
         """
+        wcec = 0
         deadline = 0
+        init_freq = 0
         freqs_volt = {}
         freqs = []
         volts = []
@@ -157,22 +160,23 @@ class TestSimpleCase(unittest.TestCase):
         with open(config_file_name, 'rU') as f:
             lines = f.readlines()
             try:
-                deadline = float(lines[0].split()[0])
-
-                for freq in lines[1].split():
+                for freq in lines[0].split():
                     freqs.append(float(freq))
-                init_freq = max(freqs)
 
-                for volt in lines[2].split():
+                for volt in lines[1].split():
                     volts.append(float(volt))
 
                 for i in range(0, len(freqs)):
                     freqs_volt[freqs[i]] = volts[i]
+
+                wcec = float(lines[2].split()[0])
+                deadline = float(lines[2].split()[1])
+                init_freq = float(lines[2].split()[2])
             except ValueError, IndexError:
                 print 'Invalid data in config file'
                 sys.exit(1)
 
-        return deadline, init_freq, freqs_volt
+        return wcec, deadline, init_freq, freqs_volt
 
     def _init_data(self):
         """ Initialize simulation data such as: graph, task's information, path
@@ -184,10 +188,10 @@ class TestSimpleCase(unittest.TestCase):
         self._graph.make_cfg()
 
         # get and initialize data for simulation
-        deadline, init_freq, freqs_volt = self._read_config_file()
+        wcec, deadline, init_freq, freqs_volt = self._read_config_file()
         self._init_freq = init_freq
         self._cfgpaths = cfg_paths.CFGPaths()
-        self._simulate = sim.SimDVFS(deadline, freqs_volt)
+        self._simulate = sim.SimDVFS(wcec, deadline, freqs_volt)
 
     def _check_result(self, path, valentin, result_check, result_ok):
         """ Simulate path execution and check if the result matches.
