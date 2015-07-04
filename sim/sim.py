@@ -31,8 +31,11 @@ class SimDVFS(object):
             _typeL_overhead (float): cycles overhead of typeL edges operations
             _curfreq (float): current frequency being used in path execution
             _cpc_consumed (float): current path cycles consumed so far in path
-                execution
-            _wcec_consumed (float): cycles consumed from WCEP
+                execution with the same frequency
+            _wcec_consumed (float): cycles consumed from WCEP. Saved execution
+                cycles are taking into account here
+            _sec (float): saved execution cycles which means, how many cycles
+                were not executed because of a type-B or type-L edge
             _freq_cycles_consumed (list): list to store path execution history
                 where each element is a tuple(frequency used, cycles consumed
                 by the given frequency)
@@ -53,6 +56,7 @@ class SimDVFS(object):
         self._curfreq = 0
         self._cpc_consumed = 0
         self._wcec_consumed = 0
+        self._sec = 0
         self._freq_cycles_consumed = []
 
     def get_volt_from_freq(self, freq):
@@ -92,6 +96,7 @@ class SimDVFS(object):
         for i in range(0, len(path)):
             n, wcec = path[i]
             self._cpc_consumed += wcec
+            self._wcec_consumed += wcec
             # check if n is not last node, because typeB and typeL edges are
             # always check with the pair (parent, child)
             if valentin == False and i + 1 < len(path):
@@ -100,6 +105,8 @@ class SimDVFS(object):
                     self._check_typeB_edge(n, child)
                 elif n.get_type() == CFGNodeType.PSEUDO:
                     self._check_typeL_edge(n, wcec, child)
+                self._wcec_consumed += self._sec
+                self._sec = 0
 
         # store last information
         if self._cpc_consumed != 0:
@@ -124,6 +131,7 @@ class SimDVFS(object):
         if rwcec_bj < rwcec_succbi:
             ratio = self._compute_typeB_sur(rwcec_succbi, rwcec_bj)
             self._change_freq(ratio)
+            self._sec = rwcec_succbi - rwcec_bj
 
     def _compute_typeB_sur(self, rwcec_wsbi, rwcec_bj):
         """ Compute speed update ratio from type-B edge
@@ -184,6 +192,7 @@ class SimDVFS(object):
         """
         saved = self._compute_typeL_cycles_saved(loop_wcec_once,
                 loop_max_iter, runtime_iter)
+        self._sec = saved
         if loop_after_rwcec + saved - self._typeL_overhead <= 0:
             return float(1)
         return (float(loop_after_rwcec) /
