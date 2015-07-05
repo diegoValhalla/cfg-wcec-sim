@@ -37,6 +37,8 @@ class SimDVFS(object):
                 cycles are taking into account here
             _sec (float): saved execution cycles which means, how many cycles
                 were not executed because of a type-B or type-L edge
+            _total_spent_time (float): total time spent by a task in one
+                execution
             _freq_cycles_consumed (list): list to store path execution history
                 where each element is a tuple(frequency used, cycles consumed
                 by the given frequency)
@@ -59,6 +61,7 @@ class SimDVFS(object):
         self._cpc_consumed = 0
         self._wcec_consumed = 0
         self._sec = 0
+        self._total_spent_time = self._jitter
         self._freq_cycles_consumed = []
 
     def get_volt_from_freq(self, freq):
@@ -255,6 +258,7 @@ class SimDVFS(object):
         """
         data = (self._curfreq, self._cpc_consumed)
         self._freq_cycles_consumed.append(data)
+        self._total_spent_time += float(data[1]) / float(data[0])
         self._curfreq = newfreq
         self._cpc_consumed = 0
 
@@ -285,7 +289,7 @@ class SimDVFS(object):
         result += ' - ' + path_name + ')'
         result += '\n\n'
 
-        total_time = 0
+        ci = 0
         total_energy = 0
         for freq, cycles in freq_cycles_consumed:
             time_spent = float(cycles) / freq
@@ -294,13 +298,14 @@ class SimDVFS(object):
             result += '    Cycles: %.2f\n' % cycles
             result += '    Time: %.2fs\n' % time_spent
             result += '    Energy: %.2fJ\n\n' % energy_consumed
-            total_time += time_spent
+            ci += time_spent
             total_energy += energy_consumed
 
         result += '  *** Summary ***\n'
         result += '    RWCEC: %.2f\n' % path_rwcec
+        result += '    Computing time: %.2f\n' % ci
+        result += '    Response time: %.2fs\n' % self._total_spent_time
         result += '    Deadline: %.2fs\n' % self._deadline
-        result += '    Time Spent: %.2fs\n' % (total_time + self._jitter)
         result += '    Total Energy: %.2fJ' % total_energy
         print result
 
@@ -345,15 +350,16 @@ class SimDVFS(object):
         worst_energy = float(path_rwcec) * self._freqs_volt[worst_freq]
 
         if freq_cycles_consumed != []:
-            time_spent = 0
+            ci = 0
             energy_consumed = 0
             for freq, cycles in freq_cycles_consumed:
-                time_spent += float(cycles) / freq
+                ci += float(cycles) / freq
                 energy_consumed += float(cycles) * self._freqs_volt[freq]
 
         result += '  RWCEC: %.2f\n' % path_rwcec
+        result += '  Computing time: %.2fs\n' % ci
+        result += '  Response time: %.2fs\n' % self._total_spent_time
         result += '  Deadline: %.2fs\n' % self._deadline
-        result += '  Time Spent: %.2fs\n' % (time_spent + self._jitter)
         result += '  Max frequency: %.2f MHz\n' % worst_freq
         result += '  Max energy: %.2fJ\n' % worst_energy
         result += '  Energy spent: %.2fJ\n' % energy_consumed
