@@ -15,6 +15,7 @@ class SimDVFS(object):
 
         Args:
             wcec (float): task's WCEC
+            priority (int): task's priority
             deadline (float): task's deadline
             jitter (float): task's jitter
             freqs_volt (dic): dictionary where key is the frequency and supply
@@ -44,9 +45,10 @@ class SimDVFS(object):
                 by the given frequency)
     """
     def __init__(
-            self, wcec, deadline=0, jitter=0, freqs_volt={},
+            self, wcec, priority=0, deadline=0, jitter=0, freqs_volt={},
             overheadB=100, overheadL=100):
         self._wcec = wcec
+        self._priority = priority
         self._deadline = deadline
         self._jitter = jitter
         self._freqs_volt = freqs_volt
@@ -63,6 +65,9 @@ class SimDVFS(object):
         self._sec = 0
         self._total_spent_time = self._jitter
         self._freq_cycles_consumed = []
+
+    def get_priority(self):
+        return self._priority
 
     def get_volt_from_freq(self, freq):
         """ Returns the supply voltage that matches to the given frequency

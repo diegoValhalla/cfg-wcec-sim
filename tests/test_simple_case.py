@@ -193,7 +193,7 @@ class TestSimpleCase(unittest.TestCase):
         wcec, deadline, jit, init_freq, freqs_volt = self._read_config_file()
         self._init_freq = init_freq
         self._cfgpaths = cfg_paths.CFGPaths()
-        self._simulate = sim.SimDVFS(wcec, deadline, jit, freqs_volt)
+        self._simulate = sim.SimDVFS(wcec, 0, deadline, jit, freqs_volt)
 
     def _check_result(self, path, valentin, result_check, result_ok):
         """ Simulate path execution and check if the result matches.

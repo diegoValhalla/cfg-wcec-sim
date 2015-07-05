@@ -31,7 +31,7 @@ def run(filename, config_file='sim.config'):
             init_kfreq = freqs_available[i]
             break
 
-    simulate = sim.SimDVFS(wcec, deadline, jit, freqs_volt)
+    simulate = sim.SimDVFS(wcec, 0, deadline, jit, freqs_volt)
     simulation(graph, init_vfreq, init_kfreq, cfgpaths, simulate)
 
 def simulation(graph, init_vfreq, init_kfreq, cfgpaths,
