@@ -20,8 +20,13 @@ def run(config_file='sim.config'):
     set_simulation_config(simManager, config_file)
 
     # run simulation for worst, middle and approximated best paths
+    simManager.run_sim('w', valentin=True, show_result=True)
     simManager.run_sim('w', valentin=False, show_result=True)
+
+    simManager.run_sim('m', valentin=True, show_result=True)
     simManager.run_sim('m', valentin=False, show_result=True)
+
+    simManager.run_sim('a', valentin=True, show_result=True)
     simManager.run_sim('a', valentin=False, show_result=True)
 
 def set_simulation_config(simManager, config_file):
@@ -53,12 +58,12 @@ def set_simulation_config(simManager, config_file):
                 freqs_volt[freqs[i]] = volts[i]
 
             for task in lines[2:]:
-                wcec = float(lines[2].split()[1])
-                deadline = float(lines[2].split()[2])
-                jitter = float(lines[2].split()[3])
-                init_freq = float(lines[2].split()[4])
+                wcec = float(task.split()[1])
+                deadline = float(task.split()[2])
+                jitter = float(task.split()[3])
+                init_freq = float(task.split()[4])
 
-                cfile = lines[2].split()[0]
+                cfile = task.split()[0]
                 cfile = _find_file(config_file, cfile)
                 graph = cfg.CFG(cfile)
                 graph.make_cfg()

@@ -12,7 +12,6 @@ class SimManager(object):
         self._tasks_sims = {}
         self._running_stack = []
         self._ready_queue = []
-        self._cfg_paths = CFGPaths()
         self._priority_count = 0
 
     def add_task_sim(
@@ -22,10 +21,10 @@ class SimManager(object):
         simulate = SimDVFS(
                 wcec, self._priority_count, deadline, jitter, init_freq,
                 freqs_volt)
-        wpath = self._cfg_paths.find_worst_path(graph)
-        mpath = self._cfg_paths.find_middle_path(graph)
-        abpath = self._cfg_paths.find_approximate_best_path(
-                graph, approx_percent)
+        cfg_paths = CFGPaths()
+        wpath = cfg_paths.find_worst_path(graph)
+        mpath = cfg_paths.find_middle_path(graph)
+        abpath = cfg_paths.find_approximate_best_path(graph, approx_percent)
         if abpath is None:
             print 'approximate best path is not available'
             sys.exit(1)
@@ -54,3 +53,5 @@ class SimManager(object):
                 sim.print_results(
                         path_name, path.get_path_rwcec(), result,
                         valentin, False)
+                sim.print_to_csv(
+                        path_name, path.get_path_rwcec(), result, valentin)
