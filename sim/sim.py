@@ -296,6 +296,7 @@ class SimDVFS(object):
         result += '\n\n'
 
         ci = 0
+        total_time = 0
         total_energy = 0
         for freq, cycles in freq_cycles_consumed:
             time_spent = float(cycles) / freq
@@ -372,3 +373,46 @@ class SimDVFS(object):
         result += ('  Energy reduction: %.2f%%\n' %
                     (100 - (energy_consumed * 100) / worst_energy))
         print result
+
+    def print_to_csv(self, path_name, path_rwcec, freq_cycles_consumed,
+            valentin):
+        csv = 'v,' if (valentin) else 'm,'
+        csv += path_name
+        csv += ',%(path_rwcec).0f,%(energy_reduction).2f%%'
+        csv += ',%(time_spent).2f,%(deadline).2f'
+
+        ci = 0
+        freqCount = len(self._freqs_available) - 1
+        total_time = 0
+        total_energy = 0
+        for freq, cycles in freq_cycles_consumed:
+            time_spent = float(cycles) / freq
+            energy_consumed = float(cycles) * self._freqs_volt[freq]
+            ci += time_spent
+            total_energy += energy_consumed
+            # print not used frequencies
+            while freq < self._freqs_available[freqCount]:
+                csv += ',-,-,-'
+                freqCount -= 1
+            freqCount -= 1
+            csv += ',%.0f' % freq
+            csv += ',%.0f' % cycles
+            csv += ',%.2f' % time_spent
+        while freqCount >= 0:
+            csv += ',-,-,-'
+            freqCount -= 1
+
+        # compare to use of higher frequency
+        worst_freq = max(self._freqs_available)
+        worst_energy = float(path_rwcec) * self._freqs_volt[worst_freq]
+        energy_reduction = (100 - (total_energy * 100) / worst_energy)
+
+        csv %= {
+            'path_rwcec': path_rwcec, 'energy_reduction': energy_reduction,
+            'time_spent': time_spent, 'deadline': self._deadline
+        }
+        csv += '\n'
+
+        dataLog = open('data.csv', 'a')
+        dataLog.write(csv)
+        dataLog.close()
