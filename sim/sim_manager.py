@@ -15,12 +15,12 @@ class SimManager(object):
         self._priority_count = 0
 
     def add_task_sim(
-            self, graph, wcec, deadline, jitter, init_freq,
+            self, graph, wcec, deadline, deadline_original, jitter, init_freq,
             freqs_volt, approx_percent):
         self._priority_count += 1
         simulate = SimDVFS(
-                wcec, self._priority_count, deadline, jitter, init_freq,
-                freqs_volt)
+                wcec, self._priority_count, deadline, deadline_original,
+                jitter, init_freq, freqs_volt)
         cfg_paths = CFGPaths()
         wpath = cfg_paths.find_worst_path(graph)
         mpath = cfg_paths.find_middle_path(graph)
@@ -31,7 +31,7 @@ class SimManager(object):
         self._tasks_sims[self._priority_count] = (
                 simulate, wpath, mpath, abpath)
 
-    def run_sim(self, path_name='w', valentin=False, show_result=True):
+    def run_sim(self, path_name='w', valentin=False, show_result=False):
         priorities = sorted(self._tasks_sims.keys())
         # by the end, all tasks will have runned at least once. The last
         # task will run only once

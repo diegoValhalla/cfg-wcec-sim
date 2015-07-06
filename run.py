@@ -21,13 +21,13 @@ def run(config_file='sim.config'):
 
     # run simulation for worst, middle and approximated best paths
     simManager.run_sim('w', valentin=True, show_result=True)
-    simManager.run_sim('w', valentin=False, show_result=True)
+    #simManager.run_sim('w', valentin=False, show_result=True)
 
-    simManager.run_sim('m', valentin=True, show_result=True)
-    simManager.run_sim('m', valentin=False, show_result=True)
+    #simManager.run_sim('m', valentin=True, show_result=True)
+    #simManager.run_sim('m', valentin=False, show_result=True)
 
-    simManager.run_sim('a', valentin=True, show_result=True)
-    simManager.run_sim('a', valentin=False, show_result=True)
+    #simManager.run_sim('a', valentin=True, show_result=True)
+    #simManager.run_sim('a', valentin=False, show_result=True)
 
 def set_simulation_config(simManager, config_file):
     """ Get task and environment information of a configuration file.
@@ -60,15 +60,16 @@ def set_simulation_config(simManager, config_file):
             for task in lines[2:]:
                 wcec = float(task.split()[1])
                 deadline = float(task.split()[2])
-                jitter = float(task.split()[3])
-                init_freq = float(task.split()[4])
+                deadline_original = float(task.split()[3])
+                jitter = float(task.split()[4])
+                init_freq = float(task.split()[5])
 
                 cfile = task.split()[0]
                 cfile = _find_file(config_file, cfile)
                 graph = cfg.CFG(cfile)
                 graph.make_cfg()
                 simManager.add_task_sim(
-                        graph, wcec, deadline, jitter,
+                        graph, wcec, deadline, deadline_original, jitter,
                         init_freq, freqs_volt, 0.1)
         except ValueError, IndexError:
             print 'Invalid data in config file'
