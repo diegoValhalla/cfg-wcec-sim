@@ -42,6 +42,9 @@ class SimDVFS(object):
                 were not executed because of a type-B or type-L edge
             _total_spent_time (float): total time spent by a task in one
                 execution
+            _start_time (float): when task simulation starts
+            _call_time (float): when task simulation was called to start. It
+                does not mean that task simulation start at the sime time
             _freq_cycles_consumed (list): list to store path execution history
                 where each element is a tuple(frequency used, cycles consumed
                 by the given frequency)
@@ -68,6 +71,8 @@ class SimDVFS(object):
         self._wcec_consumed = 0
         self._sec = 0
         self._total_spent_time = self._jitter
+        self._start_time = 0
+        self._call_time = 0
         self._freq_cycles_consumed = []
 
     def get_priority(self):
@@ -75,6 +80,9 @@ class SimDVFS(object):
 
     def get_original_deadline(self):
         return self._deadline_original
+
+    def get_response_time(self):
+        return self._total_spent_time
 
     def get_volt_from_freq(self, freq):
         """ Returns the supply voltage that matches to the given frequency
@@ -87,7 +95,7 @@ class SimDVFS(object):
         """
         return self._freqs_volt[freq]
 
-    def start_sim(self, cfg_path, valentin=False):
+    def start_sim(self, call_time, start_time, cfg_path, valentin=False):
         """ Start path execution and check for each typeB and typeL edges.
 
             Note: if Valentin's and Koreans' idea are both false, so they are
@@ -107,7 +115,14 @@ class SimDVFS(object):
         if not isinstance(cfg_path, CFGPath): return
 
         self._init_data()
+        self._start_time = start_time
+        self._call_time = call_time
         self._curfreq = self._init_freq
+        if start_time - call_time >= self._jitter:
+            self._total_spent_time -= self._jitter
+        else:
+            self._total_spent_time = self._jitter - (start_time - call_time)
+
         path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]

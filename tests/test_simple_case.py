@@ -209,7 +209,7 @@ class TestSimpleCase(unittest.TestCase):
                 result_ok (string): file name that should be used to check
                     result.
         """
-        result_list = self._simulate.start_sim(path, valentin)
+        result_list = self._simulate.start_sim(0, 0, path, valentin)
 
         with open(result_check, 'w') as f:
             for elem in result_list:

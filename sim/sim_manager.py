@@ -13,6 +13,7 @@ class SimManager(object):
         self._running_stack = []
         self._ready_queue = []
         self._priority_count = 0
+        self._sim_time = 0
 
     def add_task_sim(
             self, graph, wcec, deadline, deadline_original, jitter, init_freq,
@@ -32,7 +33,10 @@ class SimManager(object):
                 simulate, wpath, mpath, abpath)
 
     def run_sim(self, path_name='w', valentin=False, show_result=False):
+        self._sim_time = 0
+        call_time = 0 # all tasks were called at time 0 initialy
         priorities = sorted(self._tasks_sims.keys())
+
         # by the end, all tasks will have runned at least once. The last
         # task will run only once
         for prio in priorities:
@@ -43,7 +47,7 @@ class SimManager(object):
                 path = mpath = self._tasks_sims[prio][2]
             elif path_name == 'a':
                 path = self._tasks_sims[prio][3]
-            result = sim.start_sim(path, valentin)
+            result = sim.start_sim(call_time, self._sim_time, path, valentin)
 
             # show results only for the first time each task runs
             if isinstance(result, list) and show_result:
