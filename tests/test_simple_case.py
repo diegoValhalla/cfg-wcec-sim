@@ -12,7 +12,6 @@ class TestSimpleCase(unittest.TestCase):
 
         Attributes:
             _graph (CFG): control flow graph
-            _init_freq (float): initial frequency to start path execution
             _cfgpaths (CFGPaths): object to find worst, best and middle paths
             _simulate (SimDVFS): object to simulate path execution and print
                 results.
@@ -191,9 +190,9 @@ class TestSimpleCase(unittest.TestCase):
 
         # get and initialize data for simulation
         wcec, deadline, jit, init_freq, freqs_volt = self._read_config_file()
-        self._init_freq = init_freq
         self._cfgpaths = cfg_paths.CFGPaths()
-        self._simulate = sim.SimDVFS(wcec, 0, deadline, jit, freqs_volt)
+        self._simulate = sim.SimDVFS(
+                wcec, 0, deadline, jit, init_freq, freqs_volt)
 
     def _check_result(self, path, valentin, result_check, result_ok):
         """ Simulate path execution and check if the result matches.
@@ -207,7 +206,7 @@ class TestSimpleCase(unittest.TestCase):
                 result_ok (string): file name that should be used to check
                     result.
         """
-        result_list = self._simulate.start_sim(path, self._init_freq, valentin)
+        result_list = self._simulate.start_sim(path, valentin)
 
         with open(result_check, 'w') as f:
             for elem in result_list:

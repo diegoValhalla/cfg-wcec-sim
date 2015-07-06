@@ -18,6 +18,7 @@ class SimDVFS(object):
             priority (int): task's priority
             deadline (float): task's deadline
             jitter (float): task's jitter
+            init_freq (float): task's initial frequency
             freqs_volt (dic): dictionary where key is the frequency and supply
                 voltage to use the given frequency is the value
             overheadB (float): cycles overhead of changing frequency in type-B
@@ -45,12 +46,13 @@ class SimDVFS(object):
                 by the given frequency)
     """
     def __init__(
-            self, wcec, priority=0, deadline=0, jitter=0, freqs_volt={},
-            overheadB=100, overheadL=100):
+            self, wcec, priority=0, deadline=0, jitter=0, init_freq=0,
+            freqs_volt={}, overheadB=100, overheadL=100):
         self._wcec = wcec
         self._priority = priority
         self._deadline = deadline
         self._jitter = jitter
+        self._init_freq = init_freq
         self._freqs_volt = freqs_volt
         self._freqs_available = sorted(list(freqs_volt.keys()))
         self._typeB_overhead = float(overheadB)
@@ -80,7 +82,7 @@ class SimDVFS(object):
         """
         return self._freqs_volt[freq]
 
-    def start_sim(self, cfg_path, init_freq=0, valentin=False):
+    def start_sim(self, cfg_path, valentin=False):
         """ Start path execution and check for each typeB and typeL edges.
 
             Note: if Valentin's and Koreans' idea are both false, so they are
@@ -88,7 +90,6 @@ class SimDVFS(object):
 
             Args:
                 cfg_path (CFGPath): object contains the path for execution
-                init_freq (float): initial frequency to be used
                 valentin (boolean): if Valentin's idea should be used
 
             Returns:
@@ -101,7 +102,7 @@ class SimDVFS(object):
         if not isinstance(cfg_path, CFGPath): return
 
         self._init_data()
-        self._curfreq = init_freq
+        self._curfreq = self._init_freq
         path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]
