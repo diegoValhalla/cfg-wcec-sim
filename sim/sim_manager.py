@@ -16,11 +16,11 @@ class SimManager(object):
         self._sim_time = 0
 
     def add_task_sim(
-            self, graph, wcec, deadline, deadline_original, jitter, init_freq,
+            self, graph, wcec, deadline, period, jitter, init_freq,
             freqs_volt, approx_percent):
         self._priority_count += 1
         simulate = SimDVFS(
-                wcec, self._priority_count, deadline, deadline_original,
+                wcec, self._priority_count, deadline, period,
                 jitter, init_freq, freqs_volt)
         cfg_paths = CFGPaths()
         wpath = cfg_paths.find_worst_path(graph)
@@ -48,6 +48,7 @@ class SimManager(object):
             elif path_name == 'a':
                 path = self._tasks_sims[prio][3]
             result = sim.start_sim(call_time, self._sim_time, path, valentin)
+            self._ready_queue.append(call_time + sim.get_period())
 
             # show results only for the first time each task runs
             if isinstance(result, list) and show_result:

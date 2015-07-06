@@ -60,7 +60,7 @@ def set_simulation_config(simManager, config_file):
             for task in lines[2:]:
                 wcec = float(task.split()[1])
                 deadline = float(task.split()[2])
-                deadline_original = float(task.split()[3])
+                period = float(task.split()[3])
                 jitter = float(task.split()[4])
                 init_freq = float(task.split()[5])
 
@@ -69,7 +69,7 @@ def set_simulation_config(simManager, config_file):
                 graph = cfg.CFG(cfile)
                 graph.make_cfg()
                 simManager.add_task_sim(
-                        graph, wcec, deadline, deadline_original, jitter,
+                        graph, wcec, deadline, period, jitter,
                         init_freq, freqs_volt, 0.1)
         except ValueError, IndexError:
             print 'Invalid data in config file'
