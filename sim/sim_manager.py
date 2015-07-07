@@ -35,7 +35,7 @@ class SimManager(object):
         self._tasks_sims[self._priority_count] = (
                 simulate, wpath, mpath, abpath)
 
-    def run_sim(self, path_name='w', valentin=False, show_result=False):
+    def run_sim(self, path_name='w', valentin=False, show_result=''):
         self._sim_time = 0
         call_time = 0
 
@@ -78,7 +78,8 @@ class SimManager(object):
 
             # run simulation
             result = task.start_sim(
-                    self, call_time, self._sim_time, path, valentin)
+                    self, call_time, self._sim_time, path_name, path,
+                    valentin, show_result)
             if self._sim_time - call_time == 0: # task was not preempted
                 self._sim_time += task.get_response_time()
             else: # sim time should always be greater than call time
@@ -89,11 +90,6 @@ class SimManager(object):
             if next_call_time not in self._ready_queue:
                 self._ready_queue[next_call_time] = []
             self._ready_queue[next_call_time].append(task.get_priority())
-
-            # show task simulation results
-            if isinstance(result, list) and show_result:
-                task.print_to_csv(
-                        path_name, path.get_path_rwcec(), result, valentin)
 
     def check_preemp(self, curpriority, time_to_execute):
         pass

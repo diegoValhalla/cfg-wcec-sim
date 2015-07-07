@@ -13,26 +13,25 @@ def run(config_file='sim.config'):
         Args:
             filename (string): name of C file
     """
-    # create simulation manager
+    # create simulation manager and set its configuration
     simManager = sim_manager.SimManager()
-
-    # get and initialize data for simulation
     set_simulation_config(simManager, config_file)
 
     # run simulation for worst, middle and approximated best paths
-    simManager.run_sim('w', valentin=True, show_result=False)
-    #simManager.run_sim('w', valentin=False, show_result=True)
+    simManager.run_sim('w', valentin=True, show_result='data.csv')
+    #simManager.run_sim('w', valentin=False, show_result='data.csv')
 
-    #simManager.run_sim('m', valentin=True, show_result=True)
-    #simManager.run_sim('m', valentin=False, show_result=True)
+    #simManager.run_sim('m', valentin=True, show_result='data.csv')
+    #simManager.run_sim('m', valentin=False, show_result='data.csv')
 
-    #simManager.run_sim('a', valentin=True, show_result=True)
-    #simManager.run_sim('a', valentin=False, show_result=True)
+    #simManager.run_sim('a', valentin=True, show_result='data.csv')
+    #simManager.run_sim('a', valentin=False, show_result='data.csv')
 
 def set_simulation_config(simManager, config_file):
     """ Get task and environment information of a configuration file.
 
         Args:
+            simManager (SimManager): simulation manager object
             config_file_name (string): configuration file name
 
         Returns:

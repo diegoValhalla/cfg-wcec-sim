@@ -1,4 +1,4 @@
-import sys, math
+import os, sys, math
 
 sys.path.insert(0, '../../src')
 
@@ -98,8 +98,8 @@ class SimDVFS(object):
         """
         return self._freqs_volt[freq]
 
-    def start_sim(self, simManager, call_time, start_time, cfg_path,
-            valentin=False):
+    def start_sim(self, simManager, call_time, start_time, path_name, cfg_path,
+            valentin=False, result_file=''):
         """ Start path execution and check for each typeB and typeL edges.
 
             Note: if Valentin's and Koreans' idea are both false, so they are
@@ -146,6 +146,12 @@ class SimDVFS(object):
         # store last information
         if self._cpc_consumed != 0:
             self._update_data(self._curfreq)
+
+        # show task simulation results
+        if result_file and path_name:
+            self.print_to_csv(
+                    path_name, result_file, cfg_path.get_path_rwcec(),
+                    self._freq_cycles_consumed, valentin)
 
         return self._freq_cycles_consumed
 
@@ -398,8 +404,8 @@ class SimDVFS(object):
                     (100 - (energy_consumed * 100) / worst_energy))
         print result
 
-    def print_to_csv(self, path_name, path_rwcec, freq_cycles_consumed,
-            valentin):
+    def print_to_csv(self, path_name, result_file, path_rwcec,
+            freq_cycles_consumed, valentin):
         csv = 'v,' if (valentin) else 'm,'
         csv += path_name
         csv += ',%(path_rwcec).0f,%(energy_reduction).2f%%'
@@ -437,6 +443,7 @@ class SimDVFS(object):
         }
         csv += '\n'
 
-        dataLog = open('data.csv', 'a')
-        dataLog.write(csv)
-        dataLog.close()
+        if result_file:
+            dataLog = open(result_file, 'a')
+            dataLog.write(csv)
+            dataLog.close()
