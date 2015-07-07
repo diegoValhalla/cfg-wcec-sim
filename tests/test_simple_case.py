@@ -169,11 +169,12 @@ class TestSimpleCase(unittest.TestCase):
                 for i in range(0, len(freqs)):
                     freqs_volt[freqs[i]] = volts[i]
 
-                wcec = float(lines[2].split()[0])
-                deadline = float(lines[2].split()[1])
-                period = float(lines[2].split()[2])
-                jitter = float(lines[2].split()[3])
-                init_freq = float(lines[2].split()[4])
+                data = lines[2].split()
+                wcec = float(data[0])
+                deadline = float(data[1])
+                period = float(data[2])
+                jitter = float(data[3])
+                init_freq = float(data[4])
             except ValueError, IndexError:
                 print 'Invalid data in config file'
                 sys.exit(1)
@@ -209,7 +210,7 @@ class TestSimpleCase(unittest.TestCase):
                 result_ok (string): file name that should be used to check
                     result.
         """
-        result_list = self._simulate.start_sim(0, 0, path, valentin)
+        result_list = self._simulate.start_sim(None, 0, 0, path, valentin)
 
         with open(result_check, 'w') as f:
             for elem in result_list:

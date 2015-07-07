@@ -62,6 +62,7 @@ class SimDVFS(object):
         self._freqs_available = sorted(list(freqs_volt.keys()))
         self._typeB_overhead = float(overheadB)
         self._typeL_overhead = float(overheadL)
+        self._total_spent_time = self._jitter
 
     def _init_data(self):
         """ Initializes main data to keep track.
@@ -70,10 +71,12 @@ class SimDVFS(object):
         self._cpc_consumed = 0
         self._wcec_consumed = 0
         self._sec = 0
-        self._total_spent_time = self._jitter
         self._start_time = 0
         self._call_time = 0
         self._freq_cycles_consumed = []
+
+    def get_deadline(self):
+        return self._deadline
 
     def get_priority(self):
         return self._priority
@@ -95,7 +98,8 @@ class SimDVFS(object):
         """
         return self._freqs_volt[freq]
 
-    def start_sim(self, call_time, start_time, cfg_path, valentin=False):
+    def start_sim(self, simManager, call_time, start_time, cfg_path,
+            valentin=False):
         """ Start path execution and check for each typeB and typeL edges.
 
             Note: if Valentin's and Koreans' idea are both false, so they are
