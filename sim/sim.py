@@ -49,6 +49,7 @@ class SimDVFS(object):
             _freq_cycles_consumed (list): list to store path execution history
                 where each element is a tuple(frequency used, cycles consumed
                 by the given frequency)
+            _newfreq (float): the new frequency to set task execution
     """
     def __init__(
             self, wcec, priority=0, deadline=0, period=0, jitter=0,
@@ -69,6 +70,7 @@ class SimDVFS(object):
         """ Initializes main data to keep track.
         """
         self._curfreq = self._init_freq
+        self._newfreq = self._curfreq
         self._cpc_consumed = 0
         self._wcec_consumed = 0
         self._sec = 0
@@ -141,6 +143,13 @@ class SimDVFS(object):
         path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]
+
+            # new freq should be set only when a child from (n -> child) is
+            # executed and not in the end of n execution
+            if self._newfreq != self._curfreq:
+                self._update_data(self._newfreq)
+                self._newfreq = self._curfreq
+
             self._cpc_consumed += wcec
             self._wcec_consumed += wcec
 
@@ -331,7 +340,7 @@ class SimDVFS(object):
             # to current frequency, it does not update data, because
             # frequency is the same as before
             if set_freq != 0 and set_freq != self._curfreq:
-                self._update_data(set_freq)
+                self._newfreq = set_freq
 
     def _update_data(self, newfreq):
         """ Save the history of how many cycles where consumed using the
