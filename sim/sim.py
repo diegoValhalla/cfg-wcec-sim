@@ -192,11 +192,11 @@ class SimDVFS(object):
 
             self._running_time += jitter
             print 'call %.2f, start %.2f' % (call_time, start_time)
-            print 'C %.2f, W %.2f, J %.2f' % (computing_time,
-                    self._waiting_preemp, jitter)
+            print 'WCEC %0.f, C %.2f, wait %.2f, J %.2f' % (self._wcec,
+                    computing_time, self._waiting_preemp, jitter)
             print 'Spent %.2f' % self._total_spent_time
-            print 'Total %.2f' % (start_time + self._total_spent_time)
             print 'D %.2f' % self._deadline
+            print 'End time %.2f' % (start_time + self._total_spent_time)
             print 'Sim Time %.2f' % (simManager.get_sim_time() +
                     self._running_time)
             print '>>> end task', self._priority, '<<<\n'

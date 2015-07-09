@@ -7,7 +7,8 @@ import unittest
 suite = unittest.TestLoader().loadTestsFromNames(
     [
         'test_simple_case',
-        'test_nopreemp_tasks'
+        'test_nopreemp_tasks',
+        'test_preemp_tasks'
     ]
 )
 
