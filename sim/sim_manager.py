@@ -15,6 +15,9 @@ class SimManager(object):
         self._priority_count = 0
         self._sim_time = 0
 
+    def get_sim_time(self):
+        return self._sim_time
+
     def add_task_sim(
             self, graph, wcec, deadline, period, jitter, init_freq,
             freqs_volt, approx_percent):
@@ -43,8 +46,10 @@ class SimManager(object):
         self._ready_queue = {}
         self._ready_queue[call_time] = []
         for task_prio in self._tasks_sims:
-            task = self._tasks_sims[task_prio]
-            self._ready_queue[call_time].append(task[0].get_priority())
+            task = self._tasks_sims[task_prio][0]
+            if call_time not in self._ready_queue:
+                self._ready_queue[call_time] = []
+            self._ready_queue[call_time].append(task.get_priority())
 
         # set stop constraint to be equal to the period of less priority
         task_prio = max(self._tasks_sims) # less priority task
@@ -52,11 +57,86 @@ class SimManager(object):
         stop_time = task[0].get_deadline()
 
         while True:
+            # get task from ready queue by priority
             call_time = min(self._ready_queue.keys()) # earliest time
-            if call_time > self._sim_time: # jump in time to call time
-                self._sim_time = call_time
+            task_prio = min(self._ready_queue[call_time])
+            task = self._tasks_sims[task_prio][0]
+            self._ready_queue[call_time].remove(task_prio)
+
+            # update sim time only if it is less than the current task call
+            # time
+            # at this point, there is no task running, that's why sim time is
+            # updated
+            if self._sim_time < call_time:
+                    self._sim_time = call_time
             if self._sim_time >= stop_time:
                 break
+
+            # remove call time from ready queue if there are no more tasks to
+            # execute in the list of this time
+            if self._ready_queue[call_time] == []:
+                del self._ready_queue[call_time]
+
+            # get task path to execute
+            if path_name == 'w':
+                path = self._tasks_sims[task_prio][1]
+            elif path_name == 'm':
+                path = mpath = self._tasks_sims[task_prio][2]
+            elif path_name == 'a':
+                path = self._tasks_sims[task_prio][3]
+
+            # run simulation
+            result = task.start_sim(
+                    self, call_time, self._sim_time, path_name, path,
+                    valentin, show_result)
+            self._sim_time += task.get_time_executed()
+
+            # set next execution time of the current task
+            next_call_time = call_time + task.get_period()
+            if next_call_time not in self._ready_queue:
+                self._ready_queue[next_call_time] = []
+            self._ready_queue[next_call_time].append(task.get_priority())
+
+    def check_preemp(self, path_name, curpriority, time_past, time_to_execute,
+            valentin, result_file):
+        """
+            Args:
+                time_past (float): time that was already executed by current
+                    task, but it was not added yet to sim time
+                time_to_execute (float): time that could leads to preemption
+                    during its execution
+        """
+        if self._ready_queue.keys() == []: return ()
+
+        # check if next task call time in ready queue preempts current one and
+        # check if next task priority is less than current one
+        call_time = min(self._ready_queue.keys()) # earliest time
+        next_task_prio = min(self._ready_queue[call_time])
+        next_task = self._tasks_sims[next_task_prio][0]
+        if call_time + next_task.get_jitter() >= (self._sim_time + time_past +
+                time_to_execute) or next_task_prio > curpriority:
+            return None # no preemption
+
+        # get preemption exact moment, so call time + jitter is always greater
+        # or equal to sim time at this point
+        # get how much time current task still runned before it was been
+        # preempted
+        self._sim_time += time_past
+        time_still_running = 0
+        time_still_running = (call_time + next_task.get_jitter() -
+                self._sim_time)
+
+        # set new simulation time and when current task was stopped
+        self._sim_time = call_time + next_task.get_jitter()
+        stop_time_for_preemp = self._sim_time
+
+        # preemption
+        while True:
+            # set preemption time
+            call_time = min(self._ready_queue.keys()) # earliest time
+            task_prio = min(self._ready_queue[call_time])
+            print '  %d preemped by %d at %.2f' % (curpriority, task_prio,
+                    self._sim_time)
 
             # get task from ready queue by priority
             task_prio = min(self._ready_queue[call_time])
@@ -79,11 +159,8 @@ class SimManager(object):
             # run simulation
             result = task.start_sim(
                     self, call_time, self._sim_time, path_name, path,
-                    valentin, show_result)
-            if self._sim_time - call_time == 0: # task was not preempted
-                self._sim_time += task.get_response_time()
-            else: # sim time should always be greater than call time
-                pass
+                    valentin, result_file)
+            self._sim_time += task.get_time_executed()
 
             # set next execution time of the current task
             next_call_time = call_time + task.get_period()
@@ -91,5 +168,14 @@ class SimManager(object):
                 self._ready_queue[next_call_time] = []
             self._ready_queue[next_call_time].append(task.get_priority())
 
-    def check_preemp(self, curpriority, time_to_execute):
-        pass
+            # check if a preemption will happen again
+            call_time = min(self._ready_queue.keys()) # earliest time
+            next_task_prio = min(self._ready_queue[call_time])
+            next_task = self._tasks_sims[next_task_prio][0]
+            if (call_time + next_task.get_jitter() >= self._sim_time or
+                    next_task_prio > curpriority):
+                break
+
+        # how much time task was waiting to return execution
+        wait_preemp_time = self._sim_time - stop_time_for_preemp
+        return (time_still_running, wait_preemp_time)

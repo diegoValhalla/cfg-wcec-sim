@@ -45,6 +45,7 @@ class SimDVFS(object):
             _start_time (float): when task simulation starts
             _call_time (float): when task simulation was called to start. It
                 does not mean that task simulation start at the sime time
+            _running_time (float): time spent running without preemption
             _freq_cycles_consumed (list): list to store path execution history
                 where each element is a tuple(frequency used, cycles consumed
                 by the given frequency)
@@ -67,12 +68,14 @@ class SimDVFS(object):
     def _init_data(self):
         """ Initializes main data to keep track.
         """
-        self._curfreq = 0
+        self._curfreq = self._init_freq
         self._cpc_consumed = 0
         self._wcec_consumed = 0
         self._sec = 0
         self._start_time = 0
         self._call_time = 0
+        self._running_time = 0
+        self._waiting_preemp = 0
         self._freq_cycles_consumed = []
 
     def get_deadline(self):
@@ -84,8 +87,14 @@ class SimDVFS(object):
     def get_period(self):
         return self._period
 
+    def get_jitter(self):
+        return self._jitter
+
     def get_response_time(self):
         return self._total_spent_time
+
+    def get_time_executed(self):
+        return self._running_time
 
     def get_volt_from_freq(self, freq):
         """ Returns the supply voltage that matches to the given frequency
@@ -121,17 +130,39 @@ class SimDVFS(object):
         self._init_data()
         self._start_time = start_time
         self._call_time = call_time
-        self._curfreq = self._init_freq
-        if start_time - call_time >= self._jitter:
-            self._total_spent_time -= self._jitter
-        else:
-            self._total_spent_time = self._jitter - (start_time - call_time)
+        # check if jitter has fully passed or how much time left to finish
+        # jitter
+        jitter = 0
+        if call_time + self._jitter > start_time:
+            jitter = call_time + self._jitter - start_time
+        self._total_spent_time = jitter
 
+        print '\n>>> start task', self._priority
         path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]
             self._cpc_consumed += wcec
             self._wcec_consumed += wcec
+
+            # check preemption during node execution
+            cycles_to_execute = wcec
+            while simManager:
+                time_to_execute = cycles_to_execute / self._curfreq
+                times = simManager.check_preemp(path_name, self._priority,
+                        self._running_time, time_to_execute, valentin,
+                        result_file)
+                if times == None: # no more preemptions
+                    self._running_time += time_to_execute
+                    break
+                print '  returning', self._priority
+                time_still_running = times[0]
+                wait_preemp_time = times[1]
+                self._waiting_preemp += wait_preemp_time
+                self._total_spent_time += wait_preemp_time
+                self._running_time = 0
+                wcec_executed = math.ceil(time_still_running * self._curfreq)
+                cycles_to_execute -= wcec_executed
+
             # check if n is not last node, because typeB and typeL edges are
             # always check with the pair (parent, child)
             if valentin == False and i + 1 < len(path):
@@ -152,6 +183,23 @@ class SimDVFS(object):
             self.print_to_csv(
                     path_name, result_file, cfg_path.get_path_rwcec(),
                     self._freq_cycles_consumed, valentin)
+
+        # if any jitter was used before task starts
+        if simManager:
+            computing_time = 0
+            for freq, wcec in self._freq_cycles_consumed:
+                computing_time += float(wcec) / float(freq)
+
+            self._running_time += jitter
+            print 'call %.2f, start %.2f' % (call_time, start_time)
+            print 'C %.2f, W %.2f, J %.2f' % (computing_time,
+                    self._waiting_preemp, jitter)
+            print 'Spent %.2f' % self._total_spent_time
+            print 'Total %.2f' % (start_time + self._total_spent_time)
+            print 'D %.2f' % self._deadline
+            print 'Sim Time %.2f' % (simManager.get_sim_time() +
+                    self._running_time)
+            print '>>> end task', self._priority, '<<<\n'
 
         return self._freq_cycles_consumed
 
