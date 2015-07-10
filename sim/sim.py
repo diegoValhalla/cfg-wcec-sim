@@ -93,9 +93,17 @@ class SimDVFS(object):
         return self._jitter
 
     def get_response_time(self):
+        """ Returns (float) Task's response time. In other words, how much time
+            current task spent from the time it was invoked until its ends.
+            Jitter and preemption waiting time are applied here if they happen.
+        """
         return self._total_spent_time
 
     def get_time_executed(self):
+        """ Returns (float) how much time a task took executing after a
+            preemption. If there weren't any preemption, then returns how much
+            time current task spent executing.
+        """
         return self._running_time
 
     def get_volt_from_freq(self, freq):
@@ -117,8 +125,16 @@ class SimDVFS(object):
             used together (this is the given propose).
 
             Args:
+                simManager (SimManager): simulation manager object to check
+                    preemptions
+                call_time (float): time when current task was invoked
+                start_time (float): time that current task realy starts to run
+                path_name (string): current path name 'w' (worst), 'm' (middle)
+                    or 'a' (approximated best path)
                 cfg_path (CFGPath): object contains the path for execution
                 valentin (boolean): if Valentin's idea should be used
+                result_file (string): file name to write simulation results. If
+                    anyone is given, there is not any writing
 
             Returns:
                 (list) List where each element is a tuple made by the frequency
@@ -154,23 +170,8 @@ class SimDVFS(object):
             self._wcec_consumed += wcec
 
             # check preemption during node execution
-            cycles_to_execute = wcec
-            while simManager:
-                time_to_execute = cycles_to_execute / self._curfreq
-                times = simManager.check_preemp(path_name, self._priority,
-                        self._running_time, time_to_execute, valentin,
-                        result_file)
-                if times == None: # no more preemptions
-                    self._running_time += time_to_execute
-                    break
-                print '  returning', self._priority
-                time_still_running = times[0]
-                wait_preemp_time = times[1]
-                self._waiting_preemp += wait_preemp_time
-                self._total_spent_time += wait_preemp_time
-                self._running_time = 0
-                wcec_executed = math.ceil(time_still_running * self._curfreq)
-                cycles_to_execute -= wcec_executed
+            self._check_preemp(simManager, path_name, wcec, valentin,
+                    result_file)
 
             # check if n is not last node, because typeB and typeL edges are
             # always check with the pair (parent, child)
@@ -355,6 +356,42 @@ class SimDVFS(object):
         self._curfreq = newfreq
         self._cpc_consumed = 0
 
+    def _check_preemp(self, simManager, path_name, cycles_to_execute,
+            valentin, result_file):
+        """ Check if during the execution of n cycles, current task will be
+            preempted by anyone with higher priority. If preempted, update how
+            long current task waits until be resumed again, and how much time
+            passed execution current node before task be preempted.
+
+            Args:
+                simManager (SimManager): simulation manager object to check
+                    preemptions
+                path_name (string): current path name 'w' (worst), 'm' (middle)
+                    or 'a' (approximated best path)
+                cycles_to_execute (float): how many cycles must be executed
+                    following the current path
+                valentin (boolean): if Valentin's idea should be used
+                result_file (string): file name to write simulation results. If
+                    anyone is given, there is not any writing
+
+        """
+        while simManager:
+            time_to_execute = cycles_to_execute / self._curfreq
+            times = simManager.check_preemp(path_name, self._priority,
+                    self._running_time, time_to_execute, valentin,
+                    result_file)
+            if times == None: # no more preemptions
+                self._running_time += time_to_execute
+                break
+            print '  returning', self._priority
+            time_still_running = times[0]
+            wait_preemp_time = times[1]
+            self._waiting_preemp += wait_preemp_time
+            self._total_spent_time += wait_preemp_time
+            self._running_time = 0
+            wcec_executed = math.ceil(time_still_running * self._curfreq)
+            cycles_to_execute -= wcec_executed
+
     def print_results(self, path_name, path_rwcec, freq_cycles_consumed,
             valentin, koreans):
         """ Print detailed information in standard output of a given result by
@@ -463,6 +500,17 @@ class SimDVFS(object):
 
     def print_to_csv(self, path_name, result_file, path_rwcec,
             freq_cycles_consumed, valentin):
+        """ Print summary information in CSV format comparing the result to the
+            use of greatest frequency available in the same path execution.
+
+            By order, the information is:
+                <which idea>,<path name>,<path RWCEC>,<energy reduction>,
+                <total time spent in task execution>,<deadline>,<freq1>,<cycles
+                consumed with freq1>,<time spent with freq1>,...,<freqn>,
+                <cycles consumed with freqn>,<time spent with freqn>
+
+            Note: this information is written in only one line.
+        """
         csv = 'v,' if (valentin) else 'm,'
         csv += path_name
         csv += ',%(path_rwcec).0f,%(energy_reduction).2f%%'

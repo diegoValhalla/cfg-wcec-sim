@@ -7,21 +7,51 @@ from sim import SimDVFS
 
 
 class SimManager(object):
+    """ Manages the execution of all tasks and handle preemption according to
+        their priority, period and jitter.
 
+        Args:
+            tasks_sims (dic): keeps all tasks that will be simulated. The key
+                is task's priority and the value is a list where the first
+                element is SimDVFS object that will simulate task execution,
+                the second and the following elements are: WCEP, MCEP and ABCEP
+            ready_queue (dic): keeps the time that each task will be invoked.
+                The key is the time while value is the same as task_sims object
+            priority_count (int): counter to set priority of each task while
+                they are added to simulation manager. Note: less value means
+                high priority
+            sim_time (float): simulation time
+    """
     def __init__(self):
         self._tasks_sims = {}
-        self._running_stack = []
         self._ready_queue = {}
         self._priority_count = 0
         self._sim_time = 0
 
     def get_sim_time(self):
+        """ Returns (float) current simulation time
+        """
         return self._sim_time
 
     def add_task_sim(
             self, graph, wcec, deadline, period, jitter, init_freq,
             freqs_volt, approx_percent):
+        """ Simulate all tasks execution by checking their priority and
+            periods. It also is responsible to schedule when current task will
+            be simulate again based on its period and jitter.
 
+            Args:
+                graph (CFG): control flow graph
+                wcec (float): task's WCEC
+                deadline (float): task's new deadline equals to response time
+                period (float): task's period
+                jitter (float): task's jitter
+                init_freq (float): task's initial frequency
+                freqs_volt (dic): dictionary where key is the frequency and
+                    supply voltage to use the given frequency is the value
+                per_cent (float): how much per cent from WCEC should be
+                    approximate best path.
+        """
         self._priority_count += 1
         simulate = SimDVFS(
                 wcec, self._priority_count, deadline, period,
@@ -39,6 +69,17 @@ class SimManager(object):
                 simulate, wpath, mpath, abpath)
 
     def run_sim(self, path_name='w', valentin=False, show_result=''):
+        """ Simulate all tasks execution by checking their priority and
+            periods. It also is responsible to schedule when current task will
+            be simulate again based on its period and jitter.
+
+            Args:
+                path_name (string): current path name 'w' (worst), 'm' (middle)
+                    or 'a' (approximated best path)
+                valentin (boolean): if Valentin's idea should be used
+                show_result (string): file name to write simulation results. If
+                    anyone is given, there is not any writing
+        """
         self._sim_time = 0
         call_time = 0
 
@@ -63,12 +104,12 @@ class SimManager(object):
             task = self._tasks_sims[task_prio][0]
             self._ready_queue[call_time].remove(task_prio)
 
-            # update sim time only if it is less than the current task call
-            # time
             # at this point, there is no task running, that's why sim time is
-            # updated
+            # updated to the closer time that has a task.
             if self._sim_time < call_time:
-                    self._sim_time = call_time
+                # note: update sim time only if it is less than the current
+                # task call time
+                self._sim_time = call_time
             if self._sim_time >= stop_time:
                 break
 
@@ -87,8 +128,10 @@ class SimManager(object):
 
             # run simulation
             result = task.start_sim(
-                    self, call_time, self._sim_time, path_name, path,
-                    valentin, show_result)
+                    self, call_time, self._sim_time, path_name,
+                    path, valentin, show_result)
+
+            # update simulation time
             self._sim_time += task.get_time_executed()
 
             # set next execution time of the current task
@@ -99,12 +142,28 @@ class SimManager(object):
 
     def check_preemp(self, path_name, curpriority, time_past, time_to_execute,
             valentin, result_file):
-        """
+        """ Check if any preemption should happen during the execution of the
+            new node. If during 'time_to_execute' there is a preemption, then
+            check how much time was passed before preemption, and also check
+            how much time the current task waits until be resumed.
+
             Args:
+                path_name (string): current path name 'w' (worst), 'm' (middle)
+                    or 'a' (approximated best path)
                 time_past (float): time that was already executed by current
                     task, but it was not added yet to sim time
                 time_to_execute (float): time that could leads to preemption
                     during its execution
+                valentin (boolean): if Valentin's idea should be used
+                show_result (string): file name to write simulation results. If
+                    anyone is given, there is not any writing
+
+            Returns:
+                (tuple) None if there was not any preemption or a 2-elements
+                    tuple where the first one is how much time task still
+                    consumed before be preempted. Then, the second element
+                    means how long the preempted task wait until its execution
+                    could be resumed
         """
         if self._ready_queue.keys() == []: return ()
 
@@ -118,9 +177,8 @@ class SimManager(object):
             return None # no preemption
 
         # get preemption exact moment, so call time + jitter is always greater
-        # or equal to sim time at this point
-        # get how much time current task still runned before it was been
-        # preempted
+        # or equal to sim time at this point. Moreover, get how much time
+        # current task still runned before it was been preempted
         self._sim_time += time_past
         time_still_running = 0
         time_still_running = (call_time + next_task.get_jitter() -
@@ -160,6 +218,8 @@ class SimManager(object):
             result = task.start_sim(
                     self, call_time, self._sim_time, path_name, path,
                     valentin, result_file)
+
+            # update simulation time
             self._sim_time += task.get_time_executed()
 
             # set next execution time of the current task
@@ -168,7 +228,7 @@ class SimManager(object):
                 self._ready_queue[next_call_time] = []
             self._ready_queue[next_call_time].append(task.get_priority())
 
-            # check if a preemption will happen again
+            # check if there is a new preemption
             call_time = min(self._ready_queue.keys()) # earliest time
             next_task_prio = min(self._ready_queue[call_time])
             next_task = self._tasks_sims[next_task_prio][0]
