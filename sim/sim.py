@@ -155,7 +155,9 @@ class SimDVFS(object):
             jitter = call_time + self._jitter - start_time
         self._total_spent_time = jitter
 
-        print '\n>>> start task', self._priority
+        if simManager:
+            print '\n>>> start task', self._priority
+
         path = cfg_path.get_path()
         for i in range(0, len(path)):
             n, wcec = path[i]
