@@ -215,7 +215,9 @@ class TestSimpleCase(unittest.TestCase):
 
         with open(result_check, 'w') as f:
             for elem in result_list:
-                f.write(str(elem) + '\n')
+                freq = elem[0]
+                wcec = elem[1]
+                f.write('(%.0f, %0.f)\n' % (freq, wcec))
 
         test_assert = False
         with open(result_check, 'rU') as check_file,\

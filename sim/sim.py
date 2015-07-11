@@ -34,6 +34,7 @@ class SimDVFS(object):
             _typeB_overhead (float): cycles overhead of typeB edges operations
             _typeL_overhead (float): cycles overhead of typeL edges operations
             _curfreq (float): current frequency being used in path execution
+            _curfreq_st (float): current frequency start time
             _cpc_consumed (float): current path cycles consumed so far in path
                 execution with the same frequency
             _wcec_consumed (float): cycles consumed from WCEP. Saved execution
@@ -78,6 +79,7 @@ class SimDVFS(object):
         self._call_time = 0
         self._running_time = 0
         self._waiting_preemp = 0
+        self._curfreq_st = 0
         self._freq_cycles_consumed = []
 
     def get_deadline(self):
@@ -146,14 +148,16 @@ class SimDVFS(object):
         if not isinstance(cfg_path, CFGPath): return
 
         self._init_data()
-        self._start_time = start_time
         self._call_time = call_time
+        self._start_time = start_time
+
         # check if jitter has fully passed or how much time left to finish
         # jitter
         jitter = 0
         if call_time + self._jitter > start_time:
             jitter = call_time + self._jitter - start_time
         self._total_spent_time = jitter
+        self._curfreq_st = start_time + jitter
 
         if simManager:
             print '\n>>> start task', self._priority
@@ -171,8 +175,8 @@ class SimDVFS(object):
                         result_file)
                 # overhead is executed with the old frequency
                 self._cpc_consumed += overhead
-                self._update_data(self._newfreq)
-                self._newfreq = self._curfreq
+                self._update_data(self._curfreq, self._newfreq,
+                        self._cpc_consumed)
 
             self._cpc_consumed += wcec
             self._wcec_consumed += wcec
@@ -194,7 +198,7 @@ class SimDVFS(object):
 
         # store last information
         if self._cpc_consumed != 0:
-            self._update_data(self._curfreq)
+            self._update_data(self._curfreq, self._curfreq, self._cpc_consumed)
 
         # show task simulation results
         if result_file and path_name:
@@ -206,7 +210,7 @@ class SimDVFS(object):
         if simManager:
             total_wcec = 0
             computing_time = 0
-            for freq, wcec in self._freq_cycles_consumed:
+            for freq, wcec, st, et in self._freq_cycles_consumed:
                 total_wcec += wcec
                 computing_time += float(wcec) / float(freq)
 
@@ -355,18 +359,25 @@ class SimDVFS(object):
             if set_freq != 0 and set_freq != self._curfreq:
                 self._newfreq = set_freq
 
-    def _update_data(self, newfreq):
+    def _update_data(self, curfreq, newfreq, cycles_consumed):
         """ Save the history of how many cycles where consumed using the
-            current frequency and apply the new frequency.
+            current frequency, what time current frequency was applied and what
+            time it stopped to be used. Then, apply the new frequency.
 
             Args:
+                curfreq (float): current frequency being used in path execution
                 newfreq (float): new frequency to be used in path execution
+                cycles_consumed (float): how many cycles were consumed until
+                    now using the current frequency
         """
-        data = (self._curfreq, self._cpc_consumed)
+        freq_time_spent = float(cycles_consumed) / float(curfreq)
+        curfreq_endtime = self._curfreq_st + freq_time_spent
+        data = (curfreq, cycles_consumed, self._curfreq_st, curfreq_endtime)
         self._freq_cycles_consumed.append(data)
-        self._total_spent_time += float(data[1]) / float(data[0])
         self._curfreq = newfreq
         self._cpc_consumed = 0
+        self._total_spent_time += freq_time_spent
+        self._curfreq_st = self._start_time + self._total_spent_time
 
     def _check_preemp(self, simManager, path_name, cycles_to_execute,
             valentin, result_file):
@@ -434,7 +445,7 @@ class SimDVFS(object):
         ci = 0
         total_time = 0
         total_energy = 0
-        for freq, cycles in freq_cycles_consumed:
+        for freq, cycles, st, et in freq_cycles_consumed:
             time_spent = float(cycles) / freq
             energy_consumed = float(cycles) * self._freqs_volt[freq]
             result += '  F: %.2f MHz\n' % freq
@@ -495,7 +506,7 @@ class SimDVFS(object):
         if freq_cycles_consumed != []:
             ci = 0
             energy_consumed = 0
-            for freq, cycles in freq_cycles_consumed:
+            for freq, cycles, st, et in freq_cycles_consumed:
                 ci += float(cycles) / freq
                 energy_consumed += float(cycles) * self._freqs_volt[freq]
 
@@ -533,7 +544,7 @@ class SimDVFS(object):
         total_time = 0
         total_wcec = 0
         total_energy = 0
-        for freq, cycles in freq_cycles_consumed:
+        for freq, cycles, st, et in freq_cycles_consumed:
             total_wcec += cycles
             time_spent = float(cycles) / freq
             energy_consumed = float(cycles) * self._freqs_volt[freq]
