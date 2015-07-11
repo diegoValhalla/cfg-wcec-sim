@@ -6,7 +6,7 @@ import unittest
 
 suite = unittest.TestLoader().loadTestsFromNames(
     [
-        'test_simple_case',
+        'test_simple_task',
         'test_nopreemp_tasks',
         'test_preemp_tasks'
     ]

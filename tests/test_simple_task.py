@@ -7,8 +7,9 @@ from cfg import cfg, cfg2graphml
 from sim import cfg_paths, sim
 
 
-class TestSimpleCase(unittest.TestCase):
-    """ Simulate a simple test case to validate implementation.
+class TestSimpleTask(unittest.TestCase):
+    """ Simulate a simple test case of one task execution to validate
+        implementation.
 
         Attributes:
             _graph (CFG): control flow graph
@@ -25,8 +26,8 @@ class TestSimpleCase(unittest.TestCase):
         name = os.path.join(testdir, check_dir, name)
         return name
 
-    def test_worst_case_mine(self):
-        test_name = self.test_worst_case_mine.__name__
+    def test_simple_worst_case_mine(self):
+        test_name = self.test_simple_worst_case_mine.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -34,8 +35,8 @@ class TestSimpleCase(unittest.TestCase):
         wpath = self._cfgpaths.find_worst_path(self._graph)
         self._check_result(wpath, False, result_check, result_ok)
 
-    def test_worst_case_valentin(self):
-        test_name = self.test_worst_case_valentin.__name__
+    def test_simple_worst_case_valentin(self):
+        test_name = self.test_simple_worst_case_valentin.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -43,8 +44,8 @@ class TestSimpleCase(unittest.TestCase):
         wpath = self._cfgpaths.find_worst_path(self._graph)
         self._check_result(wpath, True, result_check, result_ok)
 
-    def test_worst_case_koreans(self):
-        test_name = self.test_worst_case_koreans.__name__
+    def test_simple_worst_case_koreans(self):
+        test_name = self.test_simple_worst_case_koreans.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -52,8 +53,8 @@ class TestSimpleCase(unittest.TestCase):
         wpath = self._cfgpaths.find_worst_path(self._graph)
         self._check_result(wpath, False, result_check, result_ok)
 
-    def test_best_case_mine(self):
-        test_name = self.test_best_case_mine.__name__
+    def test_simple_best_case_mine(self):
+        test_name = self.test_simple_best_case_mine.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -61,8 +62,8 @@ class TestSimpleCase(unittest.TestCase):
         bpath = self._cfgpaths.find_best_path(self._graph)
         self._check_result(bpath, False, result_check, result_ok)
 
-    def test_best_case_valentin(self):
-        test_name = self.test_best_case_valentin.__name__
+    def test_simple_best_case_valentin(self):
+        test_name = self.test_simple_best_case_valentin.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -70,8 +71,8 @@ class TestSimpleCase(unittest.TestCase):
         bpath = self._cfgpaths.find_best_path(self._graph)
         self._check_result(bpath, True, result_check, result_ok)
 
-    def test_best_case_koreans(self):
-        test_name = self.test_best_case_koreans.__name__
+    def test_simple_best_case_koreans(self):
+        test_name = self.test_simple_best_case_koreans.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -79,8 +80,8 @@ class TestSimpleCase(unittest.TestCase):
         bpath = self._cfgpaths.find_best_path(self._graph)
         self._check_result(bpath, False, result_check, result_ok)
 
-    def test_approx_best_case_mine(self):
-        test_name = self.test_approx_best_case_mine.__name__
+    def test_simple_approx_best_case_mine(self):
+        test_name = self.test_simple_approx_best_case_mine.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -89,8 +90,8 @@ class TestSimpleCase(unittest.TestCase):
                 0.2)
         self._check_result(approxPath, False, result_check, result_ok)
 
-    def test_approx_best_case_valentin(self):
-        test_name = self.test_approx_best_case_valentin.__name__
+    def test_simple_approx_best_case_valentin(self):
+        test_name = self.test_simple_approx_best_case_valentin.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -99,8 +100,8 @@ class TestSimpleCase(unittest.TestCase):
                 0.2)
         self._check_result(approxPath, True, result_check, result_ok)
 
-    def test_approx_best_case_koreans(self):
-        test_name = self.test_approx_best_case_koreans.__name__
+    def test_simple_approx_best_case_koreans(self):
+        test_name = self.test_simple_approx_best_case_koreans.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -109,8 +110,8 @@ class TestSimpleCase(unittest.TestCase):
                 0.2)
         self._check_result(approxPath, False, result_check, result_ok)
 
-    def test_middle_case_mine(self):
-        test_name = self.test_middle_case_mine.__name__
+    def test_simple_middle_case_mine(self):
+        test_name = self.test_simple_middle_case_mine.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -118,8 +119,8 @@ class TestSimpleCase(unittest.TestCase):
         mpath = self._cfgpaths.find_middle_path(self._graph)
         self._check_result(mpath, False, result_check, result_ok)
 
-    def test_middle_case_valentin(self):
-        test_name = self.test_middle_case_valentin.__name__
+    def test_simple_middle_case_valentin(self):
+        test_name = self.test_simple_middle_case_valentin.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -127,8 +128,8 @@ class TestSimpleCase(unittest.TestCase):
         mpath = self._cfgpaths.find_middle_path(self._graph)
         self._check_result(mpath, True, result_check, result_ok)
 
-    def test_middle_case_koreans(self):
-        test_name = self.test_middle_case_koreans.__name__
+    def test_simple_middle_case_koreans(self):
+        test_name = self.test_simple_middle_case_koreans.__name__
         result_ok = self._find_file(test_name + '.result')
         result_check = self._find_file(test_name + '.check')
 
@@ -156,7 +157,7 @@ class TestSimpleCase(unittest.TestCase):
         freqs_volt = {}
         freqs = []
         volts = []
-        config_file_name = self._find_file('sim.config')
+        config_file_name = self._find_file('sim_simple.config')
         with open(config_file_name, 'rU') as f:
             lines = f.readlines()
             try:
@@ -186,7 +187,7 @@ class TestSimpleCase(unittest.TestCase):
             finding and simulation objects.
         """
         # create CFG
-        cfile = self._find_file('test_simple_case.c')
+        cfile = self._find_file('foo.c')
         self._graph = cfg.CFG(cfile)
         self._graph.make_cfg()
 
