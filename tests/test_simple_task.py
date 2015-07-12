@@ -218,7 +218,9 @@ class TestSimpleTask(unittest.TestCase):
             for elem in result_list:
                 freq = elem[0]
                 wcec = elem[1]
-                f.write('(%.0f, %0.f)\n' % (freq, wcec))
+                st = elem[2]
+                et = elem[3]
+                f.write('(%.0f, %0.f, %.2f, %.2f)\n' % (freq, wcec, st, et))
 
         test_assert = False
         with open(result_check, 'rU') as check_file,\

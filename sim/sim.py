@@ -218,10 +218,10 @@ class SimDVFS(object):
             print 'call %.2f, start %.2f' % (call_time, start_time)
             print 'CPC %.0f, CPC+O %.0f, WCEC %0.f' % (
                     cfg_path.get_path_rwcec(), total_wcec, self._wcec)
-            print 'C %.2f, wait %.2f, J %.2f' % (computing_time,
+            print 'Ci %.2f, wait %.2f, J %.2f' % (computing_time,
                     self._waiting_preemp, jitter)
             print 'Spent %.2f' % self._total_spent_time
-            print 'D %.2f' % self._deadline
+            print 'Di %.2f' % self._deadline
             print 'End time %.2f' % (start_time + self._total_spent_time)
             print 'Sim Time %.2f' % (simManager.get_sim_time() +
                     self._running_time)
@@ -453,13 +453,18 @@ class SimDVFS(object):
         total_energy = 0
         for freq, cycles, st, et in freq_cycles_consumed:
             time_spent = float(cycles) / freq
+            ci += time_spent
             energy_consumed = float(cycles) * self._freqs_volt[freq]
+            total_energy += energy_consumed
             result += '  F: %.2f MHz\n' % freq
             result += '    Cycles: %.2f\n' % cycles
-            result += '    Time: %.2fs\n' % time_spent
+            result += '    Ci: %.2fs\n' % (et - st) # how long it took
+            result += '    Start Time: %.2fs\n' % st # starting use freq
+            result += '    End Time: %.2fs\n' % et # ending use freq
             result += '    Energy: %.2fJ\n\n' % energy_consumed
-            ci += time_spent
-            total_energy += energy_consumed
+            csv += ',%.2f' % st # simulation time starting use current freq
+            csv += ',%.2f' % et # simulation time ending use current freq
+            csv += ',%.2f' % (et - st) # how much time took with current freq
 
         result += '  *** Summary ***\n'
         result += '    RWCEC: %.2f\n' % path_rwcec
@@ -545,8 +550,12 @@ class SimDVFS(object):
         """
         csv = 'v,' if (valentin) else 'm,'
         csv += path_name
-        csv += ',%(path_rwcec).0f,%(total_wcec).0f,%(energy_reduction).2f%%'
-        csv += ',%(time_spent).2f,%(deadline).2f'
+        csv += ',%(path_rwcec).0f'
+        csv += ',%(total_wcec).0f'
+        csv += ',%(energy_reduction).2f%%'
+        csv += ',%(computing_time).2f'
+        csv += ',%(time_spent).2f'
+        csv += ',%(deadline).2f'
 
         ci = 0
         freqCount = len(self._freqs_available) - 1
@@ -566,7 +575,9 @@ class SimDVFS(object):
             freqCount -= 1
             csv += ',%.0f' % freq
             csv += ',%.0f' % cycles
-            csv += ',%.2f' % time_spent
+            csv += ',%.2f' % (et - st) # how long took to execute its cycles
+            csv += ',%.2f' % st # simulation time starting use current freq
+            csv += ',%.2f' % et # simulation time ending use current freq
         while freqCount >= 0:
             csv += ',-,-,-'
             freqCount -= 1
@@ -581,6 +592,7 @@ class SimDVFS(object):
             'path_rwcec': path_rwcec,
             'total_wcec': total_wcec,
             'energy_reduction': energy_reduction,
+            'computing_time': ci,
             'time_spent': self._total_spent_time,
             'deadline': self._deadline
         }
