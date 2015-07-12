@@ -493,8 +493,8 @@ class SimDVFS(object):
                 pass
         except IOError as e: # file does not exist, then write header
             with open(result_file, 'w') as dataLog:
-                csv = 'Idea,Path,PEC,PECO,WCEC,Reduction,Ci,Call,Start,End'
-                csv += ',Time to End,Ri,Di,Pi'
+                csv = 'Idea,Path,PEC,PECO,WCEC,Reduction,Jitter,Call,Ci,Start'
+                csv += ',End,Time to End,Ri,Di,Pi'
                 csv += ',Initial Freq.,Cycles,Start Using, End Using'
                 csv += ',Time Using\n'
                 dataLog.write(csv)
@@ -505,8 +505,9 @@ class SimDVFS(object):
         csv += ',%(path_rwcec).0f'
         csv += ',%(total_wcec).0f'
         csv += ',%(energy_reduction).2f%%'
-        csv += ',%(computing_time).2f'
+        csv += ',%(jitter).2f'
         csv += ',%(call_time).2f'
+        csv += ',%(computing_time).2f'
         csv += ',%(st).2f'
         csv += ',%(et).2f'
         csv += ',%(time_to_end).2f'
@@ -543,8 +544,9 @@ class SimDVFS(object):
             'path_rwcec': path_rwcec,
             'total_wcec': total_wcec,
             'energy_reduction': energy_reduction,
-            'computing_time': ci,
+            'jitter': self._jitter,
             'call_time': self._call_time,
+            'computing_time': ci,
             'st': self._start_time,
             'et': self._start_time + self._total_run_time,
             'time_to_end': self._total_run_time,
