@@ -18,7 +18,7 @@ def run(config_file='sim.config'):
     set_simulation_config(simManager, config_file)
 
     # run simulation for worst, middle and approximated best paths
-    simManager.run_sim('w', valentin=True, show_result='data.csv')
+    simManager.run_sim('w', valentin=True, show_result='')
     #simManager.run_sim('w', valentin=False, show_result='data.csv')
 
     #simManager.run_sim('m', valentin=True, show_result='data.csv')

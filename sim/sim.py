@@ -42,7 +42,7 @@ class SimDVFS(object):
                 cycles are taking into account here
             _sec (float): saved execution cycles which means, how many cycles
                 were not executed because of a type-B or type-L edge
-            _total_spent_time (float): total time spent by a task in one
+            _total_run_time (float): total time spent by a task in one
                 execution
             _start_time (float): when task simulation starts
             _call_time (float): when task simulation was called to start. It
@@ -66,7 +66,6 @@ class SimDVFS(object):
         self._freqs_available = sorted(list(freqs_volt.keys()))
         self._typeB_overhead = float(overheadB)
         self._typeL_overhead = float(overheadL)
-        self._total_spent_time = self._jitter
 
     def _init_data(self):
         """ Initializes main data to keep track.
@@ -79,7 +78,8 @@ class SimDVFS(object):
         self._start_time = 0
         self._call_time = 0
         self._running_time = 0
-        self._waiting_preemp = 0
+        self._total_run_time = 0
+        self._waitpreemp = 0
         self._curfreq_st = 0
         self._freq_cycles_consumed = []
 
@@ -94,20 +94,6 @@ class SimDVFS(object):
 
     def get_jitter(self):
         return self._jitter
-
-    def get_response_time(self):
-        """ Returns (float) Task's response time. In other words, how much time
-            current task spent from the time it was invoked until its ends.
-            Jitter and preemption waiting time are applied here if they happen.
-        """
-        return self._total_spent_time
-
-    def get_time_executed(self):
-        """ Returns (float) how much time a task took executing after a
-            preemption. If there weren't any preemption, then returns how much
-            time current task spent executing.
-        """
-        return self._running_time
 
     def get_volt_from_freq(self, freq):
         """ Returns the supply voltage that matches to the given frequency
@@ -151,14 +137,7 @@ class SimDVFS(object):
         self._init_data()
         self._call_time = call_time
         self._start_time = start_time
-
-        # check if jitter has fully passed or how much time left to finish
-        # jitter
-        jitter = 0
-        if call_time + self._jitter > start_time:
-            jitter = call_time + self._jitter - start_time
-        self._total_spent_time = jitter
-        self._curfreq_st = start_time + jitter
+        self._curfreq_st = start_time
 
         if simManager and not result_file:
             print '\n>>> start task', self._priority
@@ -199,33 +178,20 @@ class SimDVFS(object):
         # store last information if cycles consumed are greater than zero
         self._update_data(self._curfreq, self._curfreq, self._cpc_consumed)
 
+        # update simulation time with how much time a task took executing
+        # after a preemption. If there weren't any preemption, then add how
+        # much time current task spent executing.
+        if simManager:
+            simManager.add_sim_time(self._running_time)
+            if not result_file:
+                self.print_results(path_name, cfg_path.get_path_rwcec(),
+                        self._freq_cycles_consumed, valentin, False)
+
         # show task simulation results
         if result_file and path_name:
             self.print_to_csv(
                     path_name, result_file, cfg_path.get_path_rwcec(),
                     self._freq_cycles_consumed, valentin)
-
-        # if any jitter was used before task starts
-        if simManager and not result_file:
-            total_wcec = 0
-            computing_time = 0
-            for freq, wcec, st, et in self._freq_cycles_consumed:
-                print '----', freq, wcec
-                total_wcec += wcec
-                computing_time += float(wcec) / float(freq)
-
-            self._running_time += jitter
-            print 'call %.2f, start %.2f' % (call_time, start_time)
-            print 'CPC %.0f, CPC+O %.0f, WCEC %0.f' % (
-                    cfg_path.get_path_rwcec(), total_wcec, self._wcec)
-            print 'Ci %.2f, wait %.2f, J %.2f' % (computing_time,
-                    self._waiting_preemp, jitter)
-            print 'Spent %.2f' % self._total_spent_time
-            print 'Di %.2f' % self._deadline
-            print 'End time %.2f' % (start_time + self._total_spent_time)
-            print 'Sim Time %.2f' % (simManager.get_sim_time() +
-                    self._running_time)
-            print '>>> end task', self._priority, '<<<\n'
 
         return self._freq_cycles_consumed
 
@@ -375,8 +341,8 @@ class SimDVFS(object):
             curfreq_endt = self._curfreq_st + freq_time_spent
             data = (curfreq, cycles_consumed, self._curfreq_st, curfreq_endt)
             self._freq_cycles_consumed.append(data)
-            self._total_spent_time += freq_time_spent
-            self._curfreq_st = self._start_time + self._total_spent_time
+            self._total_run_time += freq_time_spent
+            self._curfreq_st = self._start_time + self._total_run_time
         self._curfreq = newfreq
         self._cpc_consumed = 0
 
@@ -408,11 +374,12 @@ class SimDVFS(object):
                 self._running_time += time_to_execute
                 break
             if not result_file:
-                print '  returning', self._priority
+                print '\n  -- returning %.0f at %.2f --\n' % (self._priority,
+                        simManager.get_sim_time())
             time_still_running = times[0]
             wait_preemp_time = times[1]
-            self._waiting_preemp += wait_preemp_time
-            self._total_spent_time += wait_preemp_time
+            self._waitpreemp += wait_preemp_time
+            self._total_run_time += wait_preemp_time
             self._running_time = 0
             wcec_executed = math.ceil(time_still_running * self._curfreq)
             cycles_to_execute -= wcec_executed
@@ -437,101 +404,72 @@ class SimDVFS(object):
                 valentin (boolean): if Valentin's idea should be used
                 koreans (boolean): if Koreans' idea should be used
         """
-        result = '\n****** Result details ******\n'
+        result = '\n  *** Result details ***\n'
+        result += '  (%.0f - %.0f)\n' % (self._priority, path_rwcec)
 
         if valentin:
-            result += '(valentin'
+            result += '  (valentin'
         elif koreans:
-            result += '(koreans'
+            result += '  (koreans'
         else:
-            result += '(mine'
+            result += '  (mine'
         result += ' - ' + path_name + ')'
-        result += '\n\n'
+        result += '\n'
 
-        ci = 0
+        summary = '\n  *** (%.0f) Summary ***\n' % path_rwcec
+        summary += '    PEC %(PEC).0f PECO %(PECO).0f WCEC %(WCEC).0f\n'
+        summary += '    Ci %(Ci).2f Wait %(Wait).2f J %(J).2f\n'
+        summary += '    Call at %(Call).2f\n'
+        summary += '    Start at %(Start).2f\n'
+        summary += '    End at %(End).2f\n'
+        summary += '    Time to end %(time_to_end).2f\n'
+        summary += '    Ri %(Ri).2f\n'
+        summary += '    Di %(Di).2f\n'
+        summary += '    Pi %(Pi).2f\n'
+        summary += '    Energy reduction %(reduction).2f\n'
+
+        freq_info = '\n    F: %(freq).2f MHz\n'
+        freq_info += '      Cycles: %(cycles).2f\n'
+        freq_info += '      Ci: %(ci).2fs\n'
+        freq_info += '      Start Time: %(st).2fs\n'
+        freq_info += '      End Time: %(et).2fs\n'
+
+        total_ci = 0
         total_time = 0
+        total_cycles = 0
         total_energy = 0
         for freq, cycles, st, et in freq_cycles_consumed:
+            total_cycles += cycles
             time_spent = float(cycles) / freq
-            ci += time_spent
+            total_ci += time_spent
             energy_consumed = float(cycles) * self._freqs_volt[freq]
             total_energy += energy_consumed
-            result += '  F: %.2f MHz\n' % freq
-            result += '    Cycles: %.2f\n' % cycles
-            result += '    Ci: %.2fs\n' % (et - st) # how long it took
-            result += '    Start Time: %.2fs\n' % st # starting use freq
-            result += '    End Time: %.2fs\n' % et # ending use freq
-            result += '    Energy: %.2fJ\n\n' % energy_consumed
-            csv += ',%.2f' % st # simulation time starting use current freq
-            csv += ',%.2f' % et # simulation time ending use current freq
-            csv += ',%.2f' % (et - st) # how much time took with current freq
+            result += freq_info % {
+                    'freq': freq,
+                    'cycles': cycles, # cycles consumed by current frequency
+                    'st': st, # start time using current frequency
+                    'et': et, # end time using current frequency
+                    'ci': et - st # computing time
+            }
 
-        result += '  *** Summary ***\n'
-        result += '    RWCEC: %.2f\n' % path_rwcec
-        result += '    Computing time: %.2f\n' % ci
-        result += '    Response time: %.2fs\n' % self._total_spent_time
-        result += '    Deadline: %.2fs\n' % self._deadline
-        result += '    Total Energy: %.2fJ' % total_energy
-        print result
-
-    def compare_result_to_worst_freq(self, path_name, path_rwcec,
-            freq_cycles_consumed, time_spent, energy_consumed, valentin,
-            koreans):
-        """ Print summary information in standard output of a given result by
-            comparing it to the used of greatest frequency available in the
-            same path execution.
-
-            Note: This print function should be used with middle paths and the
-            parameters: time_spent and energy_consumed, should not be zero and
-            freq_cycles_consumed should be an empty list in order to print
-            average results.
-
-            Args:
-                path_name (string): if it is worst, best or average path
-                path_rwcec (float): path RWCEC. If it is middle path, this
-                    value is the average of all middle paths.
-                freq_cycles_consumed (list): result list of a path execution
-                time_spent (float): time spent executing the given path. If it
-                    is middle path, this value is the average of all middle
-                    paths.
-                energy_consumed (float): energy consumed in the given path
-                    execution. If it is middle path, this value is the average
-                    of all middle paths.
-                valentin (boolean): if Valentin's idea should be used
-                koreans (boolean): if Koreans' idea should be used
-        """
-        result = '\n**** Energy Reduction (based on greatest frequency) ****\n'
-
-        if valentin:
-            result += '(valentin'
-        elif koreans:
-            result += '(koreans'
-        else:
-            result += '(mine'
-        result += ' - ' + path_name + ')'
-        result += '\n\n'
-
+        ri = self._total_run_time + (self._start_time - self._call_time)
         worst_freq = max(self._freqs_available)
         worst_energy = float(path_rwcec) * self._freqs_volt[worst_freq]
-
-        if freq_cycles_consumed != []:
-            ci = 0
-            energy_consumed = 0
-            for freq, cycles, st, et in freq_cycles_consumed:
-                ci += float(cycles) / freq
-                energy_consumed += float(cycles) * self._freqs_volt[freq]
-
         energy_reduction = 100 - (total_energy * 100) / worst_energy
         energy_reduction = round(energy_reduction, 2) + 0
 
-        result += '  RWCEC: %.2f\n' % path_rwcec
-        result += '  Computing time: %.2fs\n' % ci
-        result += '  Response time: %.2fs\n' % self._total_spent_time
-        result += '  Deadline: %.2fs\n' % self._deadline
-        result += '  Max frequency: %.2f MHz\n' % worst_freq
-        result += '  Max energy: %.2fJ\n' % worst_energy
-        result += '  Energy spent: %.2fJ\n' % energy_consumed
-        result += '  Energy reduction: %.2f%%\n' % energy_reduction
+        result += summary % {
+                'PEC': path_rwcec, 'PECO': total_cycles, 'WCEC': self._wcec,
+                'Ci': total_ci, 'Wait': self._waitpreemp, 'J': self._jitter,
+                'Call': self._call_time,
+                'Start': self._start_time,
+                'End': self._start_time + self._total_run_time,
+                'time_to_end': self._total_run_time,
+                'Ri': ri,
+                'Di': self._deadline,
+                'Pi': self._period,
+                'reduction': energy_reduction,
+        }
 
         print result
 
@@ -548,17 +486,35 @@ class SimDVFS(object):
 
             Note: this information is written in only one line.
         """
+
+        # check if the current file exist, if so, do not write header
+        try:
+            with open(result_file, 'rU') as dataLog:
+                pass
+        except IOError as e: # file does not exist, then write header
+            with open(result_file, 'w') as dataLog:
+                csv = 'Idea,Path,PEC,PECO,WCEC,Reduction,Ci,Call,Start,End'
+                csv += ',Time to End,Ri,Di,Pi'
+                csv += ',Initial Freq.,Cycles,Start Using, End Using'
+                csv += ',Time Using\n'
+                dataLog.write(csv)
+
         csv = 'v,' if (valentin) else 'm,'
         csv += path_name
+        csv += ',%(wcec).0f'
         csv += ',%(path_rwcec).0f'
         csv += ',%(total_wcec).0f'
         csv += ',%(energy_reduction).2f%%'
         csv += ',%(computing_time).2f'
-        csv += ',%(time_spent).2f'
+        csv += ',%(call_time).2f'
+        csv += ',%(st).2f'
+        csv += ',%(et).2f'
+        csv += ',%(time_to_end).2f'
+        csv += ',%(response_time).2f'
         csv += ',%(deadline).2f'
+        csv += ',%(period).2f'
 
         ci = 0
-        freqCount = len(self._freqs_available) - 1
         total_time = 0
         total_wcec = 0
         total_energy = 0
@@ -569,18 +525,11 @@ class SimDVFS(object):
             ci += time_spent
             total_energy += energy_consumed
             # print not used frequencies
-            while freq < self._freqs_available[freqCount]:
-                csv += ',-,-,-'
-                freqCount -= 1
-            freqCount -= 1
             csv += ',%.0f' % freq
             csv += ',%.0f' % cycles
-            csv += ',%.2f' % (et - st) # how long took to execute its cycles
             csv += ',%.2f' % st # simulation time starting use current freq
             csv += ',%.2f' % et # simulation time ending use current freq
-        while freqCount >= 0:
-            csv += ',-,-,-'
-            freqCount -= 1
+            csv += ',%.2f' % (et - st) # how long took to execute its cycles
 
         # compare to use of higher frequency
         worst_freq = max(self._freqs_available)
@@ -588,17 +537,24 @@ class SimDVFS(object):
         energy_reduction = 100 - (total_energy * 100) / worst_energy
         energy_reduction = round(energy_reduction, 2) + 0
 
+        ri = (self._start_time - self._call_time) + self._total_run_time
         csv %= {
+            'wcec': self._wcec,
             'path_rwcec': path_rwcec,
             'total_wcec': total_wcec,
             'energy_reduction': energy_reduction,
             'computing_time': ci,
-            'time_spent': self._total_spent_time,
-            'deadline': self._deadline
+            'call_time': self._call_time,
+            'st': self._start_time,
+            'et': self._start_time + self._total_run_time,
+            'time_to_end': self._total_run_time,
+            'response_time': ri,
+            'deadline': self._deadline,
+            'period': self._period
         }
         csv += '\n'
 
         if result_file:
-            dataLog = open(result_file, 'a')
-            dataLog.write(csv)
-            dataLog.close()
+            # append information
+            with open(result_file, 'a') as dataLog:
+                dataLog.write(csv)

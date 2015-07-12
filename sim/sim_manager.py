@@ -1,4 +1,4 @@
-import sys, math
+import os, sys, math
 
 sys.path.insert(0, '../../src')
 
@@ -32,6 +32,9 @@ class SimManager(object):
         """ Returns (float) current simulation time
         """
         return self._sim_time
+
+    def add_sim_time(self, time):
+        self._sim_time += time
 
     def add_task_sim(
             self, graph, wcec, deadline, period, jitter, init_freq,
@@ -80,6 +83,14 @@ class SimManager(object):
                 show_result (string): file name to write simulation results. If
                     anyone is given, there is not any writing
         """
+        # check if the current file exist, if so, remove it
+        try:
+            with open(show_result, 'rU') as f:
+                pass
+            os.remove(show_result)
+        except IOError as e:
+            pass # file does not exist
+
         self._sim_time = 0
         call_time = 0
 
@@ -126,13 +137,16 @@ class SimManager(object):
             elif path_name == 'a':
                 path = self._tasks_sims[task_prio][3]
 
+            # check if jitter has already passed. If condition is false, jitter
+            # has passed, if it is true, sum to sim time how much time must be
+            # passed to jitter be fully done
+            if call_time + task.get_jitter() > self._sim_time:
+                self._sim_time = call_time + task.get_jitter() - self._sim_time
+
             # run simulation
             result = task.start_sim(
                     self, call_time, self._sim_time, path_name,
                     path, valentin, show_result)
-
-            # update simulation time
-            self._sim_time += task.get_time_executed()
 
             # set next execution time of the current task
             next_call_time = call_time + task.get_period()
@@ -194,8 +208,8 @@ class SimManager(object):
             call_time = min(self._ready_queue.keys()) # earliest time
             task_prio = min(self._ready_queue[call_time])
             if not result_file:
-                print '  %d preemped by %d at %.2f' % (curpriority, task_prio,
-                        self._sim_time)
+                print '\n  -- %d preemped by %d at %.2f --' % (curpriority,
+                        task_prio, self._sim_time)
 
             # get task from ready queue by priority
             task_prio = min(self._ready_queue[call_time])
@@ -219,9 +233,6 @@ class SimManager(object):
             result = task.start_sim(
                     self, call_time, self._sim_time, path_name, path,
                     valentin, result_file)
-
-            # update simulation time
-            self._sim_time += task.get_time_executed()
 
             # set next execution time of the current task
             next_call_time = call_time + task.get_period()
