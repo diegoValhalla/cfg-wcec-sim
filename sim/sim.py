@@ -160,7 +160,7 @@ class SimDVFS(object):
         self._total_spent_time = jitter
         self._curfreq_st = start_time + jitter
 
-        if simManager:
+        if simManager and not result_file:
             print '\n>>> start task', self._priority
 
         path = cfg_path.get_path()
@@ -206,7 +206,7 @@ class SimDVFS(object):
                     self._freq_cycles_consumed, valentin)
 
         # if any jitter was used before task starts
-        if simManager:
+        if simManager and not result_file:
             total_wcec = 0
             computing_time = 0
             for freq, wcec, st, et in self._freq_cycles_consumed:
@@ -407,7 +407,8 @@ class SimDVFS(object):
             if times == None: # no more preemptions
                 self._running_time += time_to_execute
                 break
-            print '  returning', self._priority
+            if not result_file:
+                print '  returning', self._priority
             time_still_running = times[0]
             wait_preemp_time = times[1]
             self._waiting_preemp += wait_preemp_time

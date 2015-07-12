@@ -193,8 +193,9 @@ class SimManager(object):
             # set preemption time
             call_time = min(self._ready_queue.keys()) # earliest time
             task_prio = min(self._ready_queue[call_time])
-            print '  %d preemped by %d at %.2f' % (curpriority, task_prio,
-                    self._sim_time)
+            if not result_file:
+                print '  %d preemped by %d at %.2f' % (curpriority, task_prio,
+                        self._sim_time)
 
             # get task from ready queue by priority
             task_prio = min(self._ready_queue[call_time])
