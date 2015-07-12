@@ -143,7 +143,6 @@ class TestNoPreempTasks(unittest.TestCase):
                     result.
         """
         self._simManager.run_sim(path_name, valentin, result_check)
-
         test_assert = False
         with open(result_check, 'rU') as check_file,\
                 open(result_ok, 'rU') as ok_file:
