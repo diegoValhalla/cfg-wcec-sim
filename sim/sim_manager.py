@@ -71,6 +71,20 @@ class SimManager(object):
         self._tasks_sims[self._priority_count] = (
                 simulate, wpath, mpath, abpath)
 
+    def _gcd(self, x, y):
+        return self._gcd(y, x % y) if (y > 0) else x
+
+    def _lcm(self, nums):
+        if len(nums) == 0:
+            return -1
+
+        z = nums[0]
+        for y in nums[1:]:
+            x, y = max(z, y), min(z, y)
+            z = (x * y) / self._gcd(x, y)
+
+        return z
+
     def run_sim(self, path_name='w', valentin=False, show_result=''):
         """ Simulate all tasks execution by checking their priority and
             periods. It also is responsible to schedule when current task will
@@ -93,6 +107,7 @@ class SimManager(object):
 
         self._sim_time = 0
         call_time = 0
+        deadlines = []
 
         # all tasks are called at time 0 initialy
         self._ready_queue = {}
@@ -102,6 +117,7 @@ class SimManager(object):
             if call_time not in self._ready_queue:
                 self._ready_queue[call_time] = []
             self._ready_queue[call_time].append(task.get_priority())
+            deadlines.append(task.get_period())
 
         # set stop constraint to be equal to the period of less priority
         task_prio = max(self._tasks_sims) # less priority task
