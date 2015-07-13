@@ -141,7 +141,7 @@ class SimManager(object):
             # has passed, if it is true, sum to sim time how much time must be
             # passed to jitter be fully done
             if call_time + task.get_jitter() > self._sim_time:
-                self._sim_time = call_time + task.get_jitter() - self._sim_time
+                self._sim_time += call_time + task.get_jitter() - self._sim_time
 
             # run simulation
             result = task.start_sim(

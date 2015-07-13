@@ -140,7 +140,7 @@ class SimDVFS(object):
         self._curfreq_st = start_time
 
         if simManager and not result_file:
-            print '\n>>> start task', self._priority
+            print '\n>>> start task %d at %.2f' % (self._priority, start_time)
 
         path = cfg_path.get_path()
         for i in range(0, len(path)):
@@ -186,6 +186,8 @@ class SimDVFS(object):
             if not result_file:
                 self.print_results(path_name, cfg_path.get_path_rwcec(),
                         self._freq_cycles_consumed, valentin, False)
+                print '>>> end task %d at %.2f <<<' % (self._priority,
+                        start_time + self._total_run_time)
 
         # show task simulation results
         if result_file and path_name:
