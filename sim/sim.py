@@ -420,10 +420,11 @@ class SimDVFS(object):
 
         summary = '\n  *** (%.0f) Summary ***\n' % path_rwcec
         summary += '    PEC %(PEC).0f PECO %(PECO).0f WCEC %(WCEC).0f\n'
-        summary += '    Ci %(Ci).2f Wait %(Wait).2f J %(J).2f\n'
+        summary += '    Ci %(Ci).2f Wait Preemp %(Wait).2f J %(J).2f\n'
         summary += '    Call at %(Call).2f\n'
         summary += '    Start at %(Start).2f\n'
         summary += '    End at %(End).2f\n'
+        summary += '    Wait to start %(wait_to_start).2f\n'
         summary += '    Time to end %(time_to_end).2f\n'
         summary += '    Ri %(Ri).2f\n'
         summary += '    Di %(Di).2f\n'
@@ -466,6 +467,7 @@ class SimDVFS(object):
                 'Call': self._call_time,
                 'Start': self._start_time,
                 'End': self._start_time + self._total_run_time,
+                'wait_to_start': self._start_time - self._call_time,
                 'time_to_end': self._total_run_time,
                 'Ri': ri,
                 'Di': self._deadline,
@@ -496,7 +498,7 @@ class SimDVFS(object):
         except IOError as e: # file does not exist, then write header
             with open(result_file, 'w') as dataLog:
                 csv = 'Idea,Path,PEC,PECO,WCEC,Reduction,Jitter,Call,Ci,Start'
-                csv += ',End,Time to End,Ri,Di,Pi'
+                csv += ',End,Wait to Start,Time to End,Ri,Di,Pi'
                 csv += ',Initial Freq.,Cycles,Start Using, End Using'
                 csv += ',Time Using\n'
                 dataLog.write(csv)
@@ -512,6 +514,7 @@ class SimDVFS(object):
         csv += ',%(computing_time).2f'
         csv += ',%(st).2f'
         csv += ',%(et).2f'
+        csv += ',%(wait_to_start).2f'
         csv += ',%(time_to_end).2f'
         csv += ',%(response_time).2f'
         csv += ',%(deadline).2f'
@@ -551,6 +554,7 @@ class SimDVFS(object):
             'computing_time': ci,
             'st': self._start_time,
             'et': self._start_time + self._total_run_time,
+            'wait_to_start': self._start_time - self._call_time,
             'time_to_end': self._total_run_time,
             'response_time': ri,
             'deadline': self._deadline,
