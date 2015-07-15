@@ -111,25 +111,29 @@ class SimManager(object):
 
         # all tasks are called at time 0 initialy
         self._ready_queue = {}
-        self._ready_queue[call_time] = []
         for task_prio in self._tasks_sims:
             task = self._tasks_sims[task_prio][0]
-            if call_time not in self._ready_queue:
-                self._ready_queue[call_time] = []
-            self._ready_queue[call_time].append(task.get_priority())
+            self._ready_queue[task_prio] = call_time
             deadlines.append(task.get_period())
 
         # set stop constraint to be equal to the period of less priority
         task_prio = max(self._tasks_sims) # less priority task
         task = self._tasks_sims[task_prio]
         stop_time = task[0].get_deadline()
+        #stop_time = self._lcm(deadlines)
 
         while True:
-            # get task from ready queue by priority
-            call_time = min(self._ready_queue.keys()) # earliest time
-            task_prio = min(self._ready_queue[call_time])
+            # at this point, there is no preemption. Then, get task from ready
+            # queue whose call time is the smallest one
+            task_prio = -1
+            call_time = -1
+            for next_task_prio in self._ready_queue:
+                next_call_time = self._ready_queue[next_task_prio]
+                if call_time == -1 or next_call_time < call_time:
+                    task_prio = next_task_prio
+                    call_time = next_call_time
             task = self._tasks_sims[task_prio][0]
-            self._ready_queue[call_time].remove(task_prio)
+            del self._ready_queue[task.get_priority()]
 
             # at this point, there is no task running, that's why sim time is
             # updated to the closer time that has a task.
@@ -139,11 +143,6 @@ class SimManager(object):
                 self._sim_time = call_time
             if self._sim_time >= stop_time:
                 break
-
-            # remove call time from ready queue if there are no more tasks to
-            # execute in the list of this time
-            if self._ready_queue[call_time] == []:
-                del self._ready_queue[call_time]
 
             # get task path to execute
             if path_name == 'w':
@@ -166,9 +165,7 @@ class SimManager(object):
 
             # set next execution time of the current task
             next_call_time = call_time + task.get_period()
-            if next_call_time not in self._ready_queue:
-                self._ready_queue[next_call_time] = []
-            self._ready_queue[next_call_time].append(task.get_priority())
+            self._ready_queue[task.get_priority()] = next_call_time
 
     def check_preemp(self, path_name, curpriority, time_past, time_to_execute,
             valentin, result_file):
@@ -195,47 +192,49 @@ class SimManager(object):
                     means how long the preempted task wait until its execution
                     could be resumed
         """
-        if self._ready_queue.keys() == []: return ()
+        if self._ready_queue.keys() == []: return None
 
-        # check if next task call time in ready queue preempts current one and
-        # check if next task priority is less than current one
-        call_time = min(self._ready_queue.keys()) # earliest time
-        next_task_prio = min(self._ready_queue[call_time])
-        next_task = self._tasks_sims[next_task_prio][0]
-        if call_time + next_task.get_jitter() >= (self._sim_time + time_past +
-                time_to_execute) or next_task_prio > curpriority:
+        # at this point, preemption may happen. Then, search all tasks whose
+        # priority is greater than current one. After that, check if its call
+        # time is less than current sim time
+        next_task_prio = -1
+        next_call_time = -1
+        for prio in self._ready_queue:
+            prio_call_time = self._ready_queue[prio]
+            prio_task = self._tasks_sims[prio][0]
+            if ((next_task_prio == -1 or prio < next_task_prio) and
+                    (prio < curpriority and
+                    prio_call_time + prio_task.get_jitter() <
+                        self._sim_time + time_past + time_to_execute)):
+                next_task_prio = prio
+                next_call_time = prio_call_time
+
+        #print next_call_time, next_task_prio
+        if next_task_prio == -1:
             return None # no preemption
 
         # get preemption exact moment, so call time + jitter is always greater
         # or equal to sim time at this point. Moreover, get how much time
         # current task still runned before it was been preempted
+        next_task = self._tasks_sims[next_task_prio][0]
         self._sim_time += time_past
         time_still_running = 0
-        time_still_running = (call_time + next_task.get_jitter() -
+        time_still_running = (next_call_time + next_task.get_jitter() -
                 self._sim_time)
 
         # set new simulation time and when current task was stopped
-        self._sim_time = call_time + next_task.get_jitter()
+        self._sim_time = next_call_time + next_task.get_jitter()
         stop_time_for_preemp = self._sim_time
 
         # preemption
         while True:
-            # set preemption time
-            call_time = min(self._ready_queue.keys()) # earliest time
-            task_prio = min(self._ready_queue[call_time])
-            if not result_file:
-                print '\n  -- %d preemped by %d at %.2f --' % (curpriority,
-                        task_prio, self._sim_time)
-
-            # get task from ready queue by priority
-            task_prio = min(self._ready_queue[call_time])
+            call_time = next_call_time
+            task_prio = next_task_prio
             task = self._tasks_sims[task_prio][0]
-            self._ready_queue[call_time].remove(task_prio)
-
-            # remove call time from ready queue if there are no more tasks to
-            # execute in the list of this time
-            if self._ready_queue[call_time] == []:
-                del self._ready_queue[call_time]
+            del self._ready_queue[task.get_priority()]
+            if not result_file:
+                print '\n -- %d preempt by %d at %.2f' % (curpriority, task_prio,
+                        self._sim_time)
 
             # get task path to execute
             if path_name == 'w':
@@ -252,16 +251,23 @@ class SimManager(object):
 
             # set next execution time of the current task
             next_call_time = call_time + task.get_period()
-            if next_call_time not in self._ready_queue:
-                self._ready_queue[next_call_time] = []
-            self._ready_queue[next_call_time].append(task.get_priority())
+            self._ready_queue[task.get_priority()] = next_call_time
 
-            # check if there is a new preemption
-            call_time = min(self._ready_queue.keys()) # earliest time
-            next_task_prio = min(self._ready_queue[call_time])
-            next_task = self._tasks_sims[next_task_prio][0]
-            if (call_time + next_task.get_jitter() >= self._sim_time or
-                    next_task_prio > curpriority):
+            # at this point, preemption may happen. Then, search all tasks
+            # whose priority is greater than current one. After that, check if
+            # its call time is less than current sim time
+            next_task_prio = -1
+            next_call_time = -1
+            for prio in self._ready_queue:
+                prio_call_time = self._ready_queue[prio]
+                prio_task = self._tasks_sims[prio][0]
+                if ((next_task_prio == -1 or prio < next_task_prio) and
+                        prio < curpriority and prio_call_time +
+                        prio_task.get_jitter() < self._sim_time):
+                    next_task_prio = prio
+                    next_call_time = prio_call_time
+
+            if next_task_prio == -1:
                 break
 
         # how much time task was waiting to return execution
