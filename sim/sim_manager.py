@@ -2,6 +2,7 @@ import os, sys, math
 
 sys.path.insert(0, '../../src')
 
+from random import randint
 from cfg_paths import CFGPaths
 from sim import SimDVFS
 
@@ -10,7 +11,7 @@ class SimManager(object):
     """ Manages the execution of all tasks and handle preemption according to
         their priority, period and jitter.
 
-        Args:
+        Attributes:
             tasks_sims (dic): keeps all tasks that will be simulated. The key
                 is task's priority and the value is a list where the first
                 element is SimDVFS object that will simulate task execution,
@@ -21,12 +22,23 @@ class SimManager(object):
                 they are added to simulation manager. Note: less value means
                 high priority
             sim_time (float): simulation time
+            path_list (list): keep track of all paths that were used in a
+                random execution. This list must be saved to be applied to both
+                DVFS approaches: Valentin and mine.
+            random_path (list): keep track of all paths that were used in a
+                random execution
+            first_time (boolean): flag to know when ends the first execution of
+                a random path
     """
     def __init__(self):
         self._tasks_sims = {}
         self._ready_queue = {}
         self._priority_count = 0
         self._sim_time = 0
+        self._random_path = False
+        self._first_time = True
+        self._path_list = []
+        self._path_idx = 0
 
     def get_sim_time(self):
         """ Returns (float) current simulation time
@@ -85,14 +97,15 @@ class SimManager(object):
 
         return z
 
-    def run_sim(self, path_name='w', valentin=False, show_result=''):
+    def run_sim(self, path_name='', valentin=False, show_result=''):
         """ Simulate all tasks execution by checking their priority and
             periods. It also is responsible to schedule when current task will
             be simulate again based on its period and jitter.
 
             Args:
                 path_name (string): current path name 'w' (worst), 'm' (middle)
-                    or 'a' (approximated best path)
+                    or 'a' (approximated best path). An empty value means to
+                    use random paths.
                 valentin (boolean): if Valentin's idea should be used
                 show_result (string): file name to write simulation results. If
                     anyone is given, there is not any writing
@@ -106,6 +119,7 @@ class SimManager(object):
             pass # file does not exist
 
         self._sim_time = 0
+        self._path_idx = 0
         call_time = 0
         deadlines = []
 
@@ -122,6 +136,7 @@ class SimManager(object):
         stop_time = task[0].get_deadline()
         #stop_time = self._lcm(deadlines)
 
+        self._random_path = False if path_name else True
         while True:
             # at this point, there is no preemption. Then, get task from ready
             # queue whose call time is the smallest one
@@ -144,21 +159,15 @@ class SimManager(object):
             if self._sim_time >= stop_time:
                 break
 
-            # get task path to execute
-            if path_name == 'w':
-                path = self._tasks_sims[task_prio][1]
-            elif path_name == 'm':
-                path = mpath = self._tasks_sims[task_prio][2]
-            elif path_name == 'a':
-                path = self._tasks_sims[task_prio][3]
-
             # check if jitter has already passed. If condition is false, jitter
             # has passed, if it is true, sum to sim time how much time must be
             # passed to jitter be fully done
             if call_time + task.get_jitter() > self._sim_time:
-                self._sim_time += call_time + task.get_jitter() - self._sim_time
+                self._sim_time += (call_time + task.get_jitter() -
+                        self._sim_time)
 
             # run simulation
+            path = self._get_path(path_name, task_prio)
             result = task.start_sim(
                     self, call_time, self._sim_time, path_name,
                     path, valentin, show_result)
@@ -166,6 +175,8 @@ class SimManager(object):
             # set next execution time of the current task
             next_call_time = call_time + task.get_period()
             self._ready_queue[task.get_priority()] = next_call_time
+
+        self._first_time = False
 
     def check_preemp(self, path_name, curpriority, time_past, time_to_execute,
             valentin, result_file):
@@ -222,15 +233,8 @@ class SimManager(object):
                 print '\n -- %d preempt by %d at %.2f' % (curpriority, task_prio,
                         self._sim_time)
 
-            # get task path to execute
-            if path_name == 'w':
-                path = self._tasks_sims[task_prio][1]
-            elif path_name == 'm':
-                path = mpath = self._tasks_sims[task_prio][2]
-            elif path_name == 'a':
-                path = self._tasks_sims[task_prio][3]
-
             # run simulation
+            path = self._get_path(path_name, task_prio)
             result = task.start_sim(
                     self, call_time, self._sim_time, path_name, path,
                     valentin, result_file)
@@ -283,3 +287,41 @@ class SimManager(object):
         return (next_call_time,
                 next_task_prio,
                 self._tasks_sims[next_task_prio][0])
+
+    def _get_path(self, path_name, task_prio):
+        """ Check if current simulation is or not a random one. If it is, save
+            all paths to be used again. Then, return the current path that
+            must be executed.
+
+            Args:
+                path_name (string): current path name
+                task_prio (float): current task's priority
+
+            Returns:
+                (CFGPath) The path that must be executed
+        """
+        if self._random_path:
+            if self._first_time:
+                # save paths
+                path = randint(0, 2)
+                if path == 0:
+                    path_name = 'w'
+                elif path == 1:
+                    path_name = 'm'
+                elif path == 2:
+                    path_name = 'a'
+                self._path_list.append(path_name)
+            else:
+                # get path saved
+                path_name = self._path_list[self._path_idx]
+                self._path_idx += 1
+
+        # get task path to execute
+        if path_name == 'w':
+            path = self._tasks_sims[task_prio][1]
+        elif path_name == 'm':
+            path = mpath = self._tasks_sims[task_prio][2]
+        elif path_name == 'a':
+            path = self._tasks_sims[task_prio][3]
+
+        return path
