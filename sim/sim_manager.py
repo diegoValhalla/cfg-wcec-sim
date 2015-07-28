@@ -130,11 +130,8 @@ class SimManager(object):
             self._ready_queue[task_prio] = call_time
             deadlines.append(task.get_period())
 
-        # set stop constraint to be equal to the period of less priority
-        task_prio = max(self._tasks_sims) # less priority task
-        task = self._tasks_sims[task_prio]
-        stop_time = task[0].get_deadline()
-        #stop_time = self._lcm(deadlines)
+        # set stop constraint to LCM of tasks' dealines
+        stop_time = self._lcm(deadlines)
 
         self._random_path = False if path_name else True
         while True:
