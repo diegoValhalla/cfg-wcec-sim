@@ -445,7 +445,7 @@ class SimDVFS(object):
             total_cycles += cycles
             time_spent = float(cycles) / freq
             total_ci += time_spent
-            energy_consumed = float(cycles) * self._freqs_volt[freq]
+            energy_consumed = float(cycles) * (self._freqs_volt[freq]**2)
             total_energy += energy_consumed
             result += freq_info % {
                     'freq': freq,
@@ -457,7 +457,7 @@ class SimDVFS(object):
 
         ri = self._total_run_time + (self._start_time - self._call_time)
         worst_freq = max(self._freqs_available)
-        worst_energy = float(path_rwcec) * self._freqs_volt[worst_freq]
+        worst_energy = float(path_rwcec) * (self._freqs_volt[worst_freq]**2)
         energy_reduction = 100 - (total_energy * 100) / worst_energy
         energy_reduction = round(energy_reduction, 2) + 0
 
@@ -497,7 +497,7 @@ class SimDVFS(object):
                 pass
         except IOError as e: # file does not exist, then write header
             with open(result_file, 'w') as dataLog:
-                csv = 'Idea,Path,PEC,PECO,WCEC,Reduction,Jitter,Call,Ci,Start'
+                csv = 'Idea,Path,WCEC,PEC,PECO,Reduction,Jitter,Call,Ci,Start'
                 csv += ',End,Wait to Start,Time to End,Ri,Di,Pi'
                 csv += ',Initial Freq.,Cycles,Start Using, End Using'
                 csv += ',Time Using\n'
@@ -527,7 +527,7 @@ class SimDVFS(object):
         for freq, cycles, st, et in freq_cycles_consumed:
             total_wcec += cycles
             time_spent = float(cycles) / freq
-            energy_consumed = float(cycles) * self._freqs_volt[freq]
+            energy_consumed = float(cycles) * (self._freqs_volt[freq]**2)
             ci += time_spent
             total_energy += energy_consumed
             # print not used frequencies
@@ -539,7 +539,7 @@ class SimDVFS(object):
 
         # compare to use of higher frequency
         worst_freq = max(self._freqs_available)
-        worst_energy = float(total_wcec) * self._freqs_volt[worst_freq]
+        worst_energy = float(total_wcec) * (self._freqs_volt[worst_freq]**2)
         energy_reduction = 100 - (total_energy * 100) / worst_energy
         energy_reduction = round(energy_reduction, 2) + 0
 
