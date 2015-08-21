@@ -139,6 +139,10 @@ class SimDVFS(object):
         self._start_time = start_time
         self._curfreq_st = start_time
 
+        if '-w' in result_file:
+            self._curfreq = max(self._freqs_volt)
+            self._newfreq = self._curfreq
+
         if simManager and not result_file:
             print '\n>>> start task %d at %.2f' % (self._priority, start_time)
 
@@ -148,14 +152,8 @@ class SimDVFS(object):
             self._wcec_consumed += wcec
 
             # new freq should be set only when a child from (n -> child) is
-            # executed and not in the end of n execution
+            # executed and not in the end of 'n' execution
             if self._newfreq != self._curfreq:
-                overhead = self._typeB_overhead
-                # check if a preemption happens during overhead execution
-                cycles_to_execute = self._check_preemp(simManager, path_name,
-                        overhead, valentin, result_file)
-                # overhead is executed with the old frequency
-                self._cpc_consumed += cycles_to_execute
                 self._update_data(self._curfreq, self._newfreq,
                         self._cpc_consumed)
 
@@ -167,11 +165,25 @@ class SimDVFS(object):
             # check if n is not last node, because typeB and typeL edges are
             # always check with the pair (parent, child)
             if valentin == False and i + 1 < len(path):
+                overhead = 0
                 child = path[i + 1][0]
                 if n.get_type() == CFGNodeType.IF:
+                    overhead = self._typeB_overhead
                     self._check_typeB_edge(n, child)
                 elif n.get_type() == CFGNodeType.PSEUDO:
+                    overhead = self._typeL_overhead
                     self._check_typeL_edge(n, wcec, child)
+                if overhead > 0:
+                    # check if a preemption happened during overhead execution
+                    # so, "cycles to execute" can be equal to overhead, zero or
+                    # a piece of overhead
+                    cycles_to_execute = self._check_preemp(simManager,
+                            path_name, overhead, valentin, result_file)
+                    if simManager: # overhead executed with the old frequency
+                        simManager.energy_consumed(self._curfreq,
+                                cycles_to_execute, 0, self._priority)
+                    self._cpc_consumed += cycles_to_execute
+
                 self._wcec_consumed += self._sec
                 self._sec = 0
 
@@ -492,18 +504,17 @@ class SimDVFS(object):
         """
 
         # check if the current file exist, if so, do not write header
+        csv = ''
         try:
             with open(result_file, 'rU') as dataLog:
                 pass
         except IOError as e: # file does not exist, then write header
-            with open(result_file, 'w') as dataLog:
-                csv = 'Idea,Path,WCEC,PEC,PECO,Reduction,Jitter,Call,Ci,Start'
-                csv += ',End,Wait to Start,Time to End,Ri,Di,Pi'
-                csv += ',Initial Freq.,Cycles,Start Using, End Using'
-                csv += ',Time Using\n'
-                dataLog.write(csv)
+            csv += 'Idea,Path,WCEC,PEC,PECO,Reduction,Jitter,Call,Ci,Start'
+            csv += ',End,Wait to Start,Time to End,Ri,Di,Pi'
+            csv += ',Initial Freq.,Cycles,Start Using, End Using'
+            csv += ',Time Using\n'
 
-        csv = 'v,' if (valentin) else 'm,'
+        csv += 'v,' if (valentin) else 'm,'
         csv += path_name
         csv += ',%(wcec).0f'
         csv += ',%(path_rwcec).0f'
@@ -539,7 +550,7 @@ class SimDVFS(object):
 
         # compare to use of higher frequency
         worst_freq = max(self._freqs_available)
-        worst_energy = float(total_wcec) * (self._freqs_volt[worst_freq]**2)
+        worst_energy = float(path_rwcec) * (self._freqs_volt[worst_freq]**2)
         energy_reduction = 100 - (total_energy * 100) / worst_energy
         energy_reduction = round(energy_reduction, 2) + 0
 
