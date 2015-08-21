@@ -39,6 +39,16 @@ class SimManager(object):
         self._first_time = True
         self._path_list = []
         self._path_idx = 0
+        #self._time_slice = 20 # for study case I
+        self._time_slice = 50000 # for study case II
+        self._collect_time = self._time_slice
+        self._sim_time_for_result = 0
+        self._acc_energy_consumed = 0
+        self._slice_energy_consumed = 0
+        self._freq_volt = {}
+        self._filename = ''
+        self._handle_task = {}
+        self._handle_task_time = {}
 
     def get_sim_time(self):
         """ Returns (float) current simulation time
@@ -80,8 +90,12 @@ class SimManager(object):
             print 'approximate best path is not available'
             sys.exit(1)
 
+        self._freq_volt = freqs_volt
         self._tasks_sims[self._priority_count] = (
                 simulate, wpath, mpath, abpath)
+
+        self._handle_task[self._priority_count] = 0
+        self._handle_task_time[self._priority_count] = 0
 
     def _gcd(self, x, y):
         return self._gcd(y, x % y) if (y > 0) else x
@@ -120,6 +134,11 @@ class SimManager(object):
 
         self._sim_time = 0
         self._path_idx = 0
+        self._collect_time = self._time_slice
+        self._sim_time_for_result = 0
+        self._acc_energy_consumed = 0
+        self._slice_energy_consumed = 0
+        self._filename = show_result
         call_time = 0
         deadlines = []
 
@@ -153,13 +172,18 @@ class SimManager(object):
                 # note: update sim time only if it is less than the current
                 # task call time
                 self._sim_time = call_time
+                self.energy_consumed(0, 0, self._sim_time)
             if self._sim_time >= stop_time:
+                self.energy_consumed(0, 0, self._sim_time)
+                last_task.write_end_time(valentin, path_name, show_result)
                 break
 
             # check if jitter has already passed. If condition is false, jitter
             # has passed, if it is true, sum to sim time how much time must be
             # passed to jitter be fully done
             if call_time + task.get_jitter() > self._sim_time:
+                self._sim_time_for_result += (call_time + task.get_jitter() -
+                        self._sim_time)
                 self._sim_time += (call_time + task.get_jitter() -
                         self._sim_time)
 
@@ -168,6 +192,7 @@ class SimManager(object):
             result = task.start_sim(
                     self, call_time, self._sim_time, path_name,
                     path, valentin, show_result)
+            last_task = task
 
             # set next execution time of the current task
             next_call_time = call_time + task.get_period()
@@ -190,8 +215,6 @@ class SimManager(object):
                 time_to_execute (float): time that could leads to preemption
                     during its execution
                 valentin (boolean): if Valentin's idea should be used
-                show_result (string): file name to write simulation results. If
-                    anyone is given, there is not any writing
 
             Returns:
                 (tuple) None if there was not any preemption or a 2-elements
@@ -216,6 +239,10 @@ class SimManager(object):
         time_still_running = 0
         time_still_running = (next_task_info[0] +
                 next_task_info[2].get_jitter() - self._sim_time)
+        curtask = self._tasks_sims[curpriority][0]
+        cycles_consumed = math.ceil(time_still_running * curtask.get_curfreq())
+        self.energy_consumed(curtask.get_curfreq(), cycles_consumed, 0,
+                curpriority)
 
         # set new simulation time and when current task was stopped
         self._sim_time = next_call_time + next_task.get_jitter()
@@ -322,3 +349,89 @@ class SimManager(object):
             path = self._tasks_sims[task_prio][3]
 
         return path
+
+    def add_sim_time_result(self, time):
+        self._sim_time_for_result += time
+
+    def energy_consumed(self, curfreq, cycles_to_execute, time=0, task_prio=-1):
+        """ Define energy consumed for worst, valentin and mine case. This
+            function should be used only for collect energy consumption during
+            simulation.
+        """
+        # case 1: simulation reached the end or it jumped in time
+        if time > 0:
+            while self._collect_time <= time:
+                csv = '%(to_time).0f'
+                csv += ',%(slice_energy).2f,%(acc_energy).2f\n'
+                csv %= {
+                    'to_time': self._collect_time,
+                    'slice_energy': self._slice_energy_consumed,
+                    'acc_energy': self._acc_energy_consumed
+                }
+                self.print_graph_data_to_csv(csv)
+                self._slice_energy_consumed = 0
+                self._collect_time += self._time_slice
+            self._sim_time_for_result = time
+            return
+
+        # case 2: no time slice was reached
+        exectime = cycles_to_execute / curfreq
+        if self._sim_time_for_result + exectime < self._collect_time:
+            energy_to_spend = cycles_to_execute * (self._freq_volt[curfreq]**2)
+            self._slice_energy_consumed += energy_to_spend
+            self._acc_energy_consumed += energy_to_spend
+            self._sim_time_for_result += exectime
+            self._handle_task[task_prio] += energy_to_spend
+            self._handle_task_time[task_prio] += exectime
+            return
+
+        # case 3: time slice is reached after spent some time executing the new
+        # block
+        diff = self._collect_time - self._sim_time_for_result
+        if diff == exectime:
+            time_running_until_slice = exectime
+        else:
+            time_running_until_slice = diff
+            self._sim_time_for_result += time_running_until_slice
+        exectime -= diff
+
+        cycles_consumed = math.ceil(time_running_until_slice * curfreq)
+        energy_spent = cycles_consumed * (self._freq_volt[curfreq]**2)
+        self._handle_task[task_prio] += energy_spent
+        self._handle_task_time[task_prio] += time_running_until_slice
+        self._slice_energy_consumed += energy_spent
+        self._acc_energy_consumed += energy_spent
+
+        csv = '%(to_time).0f'
+        csv += ',%(slice_energy).2f,%(acc_energy).2f\n'
+        csv %= {
+            'to_time': self._collect_time,
+            'slice_energy': self._slice_energy_consumed,
+            'acc_energy': self._acc_energy_consumed
+        }
+
+        self.print_graph_data_to_csv(csv)
+        cycles_to_execute = math.ceil(exectime * curfreq)
+        self._slice_energy_consumed = 0
+        self._collect_time += self._time_slice
+
+        for prio in self._handle_task:
+            self._handle_task[prio] = 0
+            self._handle_task_time[prio] = 0
+
+        energy_to_spend = cycles_to_execute * (self._freq_volt[curfreq]**2)
+        self._handle_task[task_prio] += energy_to_spend
+        self._handle_task_time[task_prio] += exectime
+        self._slice_energy_consumed += energy_to_spend
+        self._acc_energy_consumed += energy_to_spend
+        self._sim_time_for_result += exectime
+
+    def get_handle(self):
+        return self._handle_task
+
+    def print_graph_data_to_csv(self, csv):
+        if self._filename:
+            with open(self._filename, 'a') as dataLog:
+                dataLog.write(csv)
+        else:
+            print csv

@@ -106,6 +106,12 @@ class SimDVFS(object):
         """
         return self._freqs_volt[freq]
 
+    def get_curfreq(self):
+        return self._curfreq
+
+    def get_end_time(self):
+        return self._start_time + self._total_run_time
+
     def start_sim(self, simManager, call_time, start_time, path_name, cfg_path,
             valentin=False, result_file=''):
         """ Start path execution and check for each typeB and typeL edges.
@@ -160,6 +166,8 @@ class SimDVFS(object):
             # check preemption during node execution
             cycles_to_execute = self._check_preemp(simManager, path_name, wcec,
                     valentin, result_file)
+            if simManager:
+                simManager.energy_consumed(self._curfreq, cycles_to_execute, 0, self._priority)
             self._cpc_consumed += cycles_to_execute
 
             # check if n is not last node, because typeB and typeL edges are
@@ -573,7 +581,28 @@ class SimDVFS(object):
         }
         csv += '\n'
 
-        if result_file:
-            # append information
-            with open(result_file, 'a') as dataLog:
-                dataLog.write(csv)
+        #if result_file:
+            ## append information
+            #with open(result_file, 'a') as dataLog:
+                #dataLog.write(csv)
+
+    def write_end_time(self, valentin, path_name, result_file):
+        if '-w' in result_file:
+            csv = '0,Pior Caso'
+        elif '-v' in result_file:
+            csv = '1,Valentin'
+        else:
+            csv = '2,Proposta'
+        csv += ',%.2f\n' % (self.get_end_time())
+
+        if path_name == 'w':
+            filename = 'data/end-time-worst.csv'
+        elif path_name == 'm':
+            filename = 'data/end-time-mid.csv'
+        else:
+            filename = 'data/end-time-approx.csv'
+
+        #print csv
+        #append information
+        with open(filename, 'a') as dataLog:
+            dataLog.write(csv)
