@@ -117,7 +117,7 @@ class CFGPaths(object):
         paths_rwcec = sorted(all_paths.keys())
         mid_rwcec_idx = len(paths_rwcec) / 2
 
-        if mid_rwcec_idx >= 0 and mid_rwcec_idx < len(paths_rwcec):
+        if mid_rwcec_idx < len(paths_rwcec):
             return all_paths[paths_rwcec[mid_rwcec_idx]]
         return None
 
