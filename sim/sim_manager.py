@@ -39,8 +39,8 @@ class SimManager(object):
         self._first_time = True
         self._path_list = []
         self._path_idx = 0
-        #self._time_slice = 20 # for study case I
-        self._time_slice = 50000 # for study case II
+        self._time_slice = 20 # for study case I
+        #self._time_slice = 50000 # for study case II
         self._collect_time = self._time_slice
         self._sim_time_for_result = 0
         self._acc_energy_consumed = 0
@@ -441,8 +441,9 @@ class SimManager(object):
         return self._handle_task
 
     def print_graph_data_to_csv(self, csv):
-        if self._filename:
-            with open(self._filename, 'a') as dataLog:
-                dataLog.write(csv)
-        else:
-            print csv
+        pass
+        #if self._filename:
+            #with open(self._filename, 'a') as dataLog:
+                #dataLog.write(csv)
+        #else:
+            #print csv

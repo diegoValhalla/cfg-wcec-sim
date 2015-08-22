@@ -116,9 +116,6 @@ class SimDVFS(object):
             valentin=False, result_file=''):
         """ Start path execution and check for each typeB and typeL edges.
 
-            Note: if Valentin's and Koreans' idea are both false, so they are
-            used together (this is the given propose).
-
             Args:
                 simManager (SimManager): simulation manager object to check
                     preemptions
@@ -204,8 +201,6 @@ class SimDVFS(object):
         if simManager:
             simManager.add_sim_time(self._running_time)
             if not result_file:
-                self.print_results(path_name, cfg_path.get_path_rwcec(),
-                        self._freq_cycles_consumed, valentin, False)
                 print '>>> end task %d at %.2f <<<' % (self._priority,
                         start_time + self._total_run_time)
 
@@ -226,7 +221,6 @@ class SimDVFS(object):
             Args:
                 n (CFGNode): current node being visited
                 child (CFGNode): child of n
-                koreans (boolean): if Koreans' idea should be used
         """
         rwcec_succbi = n.get_rwcec() - n.get_wcec()
         rwcec_bj = child.get_rwcec()
@@ -260,7 +254,6 @@ class SimDVFS(object):
                 n (CFGNode): current node being visited
                 loop_wcec (float): loop RWCEC using all its iterations
                 child (CFGNode): child of n
-                koreans (boolean): if Koreans' idea should be used
         """
         loop_max_iter = n.get_loop_iters()
         loop_after_line = child.get_start_line()
@@ -328,7 +321,6 @@ class SimDVFS(object):
             Args:
                 ratio (float): the ratio of how less is the following path from
                     worst case.
-                koreans (boolean): if Koreans' idea should be used
         """
         if ratio >= 1: return
         newfreq = self._curfreq * ratio
@@ -409,93 +401,6 @@ class SimDVFS(object):
             self._update_data(self._curfreq, self._curfreq, self._cpc_consumed)
 
         return cycles_to_execute
-
-    def print_results(self, path_name, path_rwcec, freq_cycles_consumed,
-            valentin, koreans):
-        """ Print detailed information in standard output of a given result by
-            checking which idea is being used.
-
-            Note: This print function can't be used to middle path since it
-            is made by the average result of all middle paths. So, there is no
-            way to know the frequencies used in average.
-
-            Args:
-                path_name (string): if it is worst, best or average path
-                path_rwcec (float): path RWCEC
-                freq_cycles_consumed (list): result list of a path execution
-                valentin (boolean): if Valentin's idea should be used
-                koreans (boolean): if Koreans' idea should be used
-        """
-        result = '\n  *** Result details ***\n'
-        result += '  (%.0f - %.0f)\n' % (self._priority, path_rwcec)
-
-        if valentin:
-            result += '  (valentin'
-        elif koreans:
-            result += '  (koreans'
-        else:
-            result += '  (mine'
-        result += ' - ' + path_name + ')'
-        result += '\n'
-
-        summary = '\n  *** (%.0f) Summary ***\n' % path_rwcec
-        summary += '    PEC %(PEC).0f PECO %(PECO).0f WCEC %(WCEC).0f\n'
-        summary += '    Ci %(Ci).2f Wait Preemp %(Wait).2f J %(J).2f\n'
-        summary += '    Call at %(Call).2f\n'
-        summary += '    Start at %(Start).2f\n'
-        summary += '    End at %(End).2f\n'
-        summary += '    Wait to start %(wait_to_start).2f\n'
-        summary += '    Time to end %(time_to_end).2f\n'
-        summary += '    Ri %(Ri).2f\n'
-        summary += '    Di %(Di).2f\n'
-        summary += '    Pi %(Pi).2f\n'
-        summary += '    Energy reduction %(reduction).2f\n'
-
-        freq_info = '\n    F: %(freq).2f MHz\n'
-        freq_info += '      Cycles: %(cycles).2f\n'
-        freq_info += '      Ci: %(ci).2fs\n'
-        freq_info += '      Start Time: %(st).2fs\n'
-        freq_info += '      End Time: %(et).2fs\n'
-
-        total_ci = 0
-        total_time = 0
-        total_cycles = 0
-        total_energy = 0
-        for freq, cycles, st, et in freq_cycles_consumed:
-            total_cycles += cycles
-            time_spent = float(cycles) / freq
-            total_ci += time_spent
-            energy_consumed = float(cycles) * (self._freqs_volt[freq]**2)
-            total_energy += energy_consumed
-            result += freq_info % {
-                    'freq': freq,
-                    'cycles': cycles, # cycles consumed by current frequency
-                    'st': st, # start time using current frequency
-                    'et': et, # end time using current frequency
-                    'ci': et - st # computing time
-            }
-
-        ri = self._total_run_time + (self._start_time - self._call_time)
-        worst_freq = max(self._freqs_available)
-        worst_energy = float(path_rwcec) * (self._freqs_volt[worst_freq]**2)
-        energy_reduction = 100 - (total_energy * 100) / worst_energy
-        energy_reduction = round(energy_reduction, 2) + 0
-
-        result += summary % {
-                'PEC': path_rwcec, 'PECO': total_cycles, 'WCEC': self._wcec,
-                'Ci': total_ci, 'Wait': self._waitpreemp, 'J': self._jitter,
-                'Call': self._call_time,
-                'Start': self._start_time,
-                'End': self._start_time + self._total_run_time,
-                'wait_to_start': self._start_time - self._call_time,
-                'time_to_end': self._total_run_time,
-                'Ri': ri,
-                'Di': self._deadline,
-                'Pi': self._period,
-                'reduction': energy_reduction,
-        }
-
-        print result
 
     def print_to_csv(self, path_name, result_file, path_rwcec,
             freq_cycles_consumed, valentin):
