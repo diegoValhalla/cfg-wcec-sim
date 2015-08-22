@@ -517,8 +517,8 @@ class SimDVFS(object):
             with open(result_file, 'rU') as dataLog:
                 pass
         except IOError as e: # file does not exist, then write header
-            csv += 'Idea,Path,WCEC,PEC,PECO,Reduction,Jitter,Call,Ci,Start'
-            csv += ',End,Wait to Start,Time to End,Ri,Di,Pi'
+            csv += 'Idea,Path,WCEC,PEC,PECO,Consumption,Reduction,Jitter,Call'
+            csv += ',Ci,Start,End,Wait to Start,Time to End,Ri,Di,Pi'
             csv += ',Initial Freq.,Cycles,Start Using, End Using'
             csv += ',Time Using\n'
 
@@ -527,6 +527,7 @@ class SimDVFS(object):
         csv += ',%(wcec).0f'
         csv += ',%(path_rwcec).0f'
         csv += ',%(total_wcec).0f'
+        csv += ',%(energy_consumption).2f'
         csv += ',%(energy_reduction).2f%%'
         csv += ',%(jitter).2f'
         csv += ',%(call_time).2f'
@@ -567,6 +568,7 @@ class SimDVFS(object):
             'wcec': self._wcec,
             'path_rwcec': path_rwcec,
             'total_wcec': total_wcec,
+            'energy_consumption': total_energy,
             'energy_reduction': energy_reduction,
             'jitter': self._jitter,
             'call_time': self._call_time,
@@ -581,10 +583,10 @@ class SimDVFS(object):
         }
         csv += '\n'
 
-        #if result_file:
-            ## append information
-            #with open(result_file, 'a') as dataLog:
-                #dataLog.write(csv)
+        if result_file:
+            # append information
+            with open(result_file, 'a') as dataLog:
+                dataLog.write(csv)
 
     def write_end_time(self, valentin, path_name, result_file):
         if '-w' in result_file:
@@ -604,5 +606,5 @@ class SimDVFS(object):
 
         #print csv
         #append information
-        with open(filename, 'a') as dataLog:
-            dataLog.write(csv)
+        #with open(filename, 'a') as dataLog:
+            #dataLog.write(csv)
