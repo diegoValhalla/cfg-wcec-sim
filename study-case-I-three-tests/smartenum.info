@@ -1,0 +1,50 @@
+Input meaning
+=============
+
+n-tasks k-freq j-shared
+freq1 freq2 freq3 ... freqk
+volt1 volt2 volt3 ... voltk
+wcec1 period1 jitter1 shared1 shared2 ... sharedj
+wcec2 period2 jitter2 shared1 shared2 ... sharedj
+...
+wcecn period2 jitter2 shared1 shared2 ... sharedj
+
+
+Worst and Valentin's Approach
+=============================
+
+* Input:
+
+3 5 1
+1000    800     600     400     150
+1.8     1.6     1.3     1       0.75
+10107   30      0.4     0
+8763    40      0.4     0
+13651   60      0.4     0
+
+* Output:
+
+Task    Ri      Fi
+10107   13.03   800
+8763    21.08   1000
+13651   56.84   1000
+
+
+Mine
+====
+
+* Input:
+
+3 5 1
+1000    800     600     400     150
+1.8     1.6     1.3     1       0.75
+10707   30      0.4     0
+9563    40      0.4     0
+13951   60      0.4     0
+
+* Output:
+
+Task    Ri      Fi
+10707   11.11   1000
+9563    23.06   800
+13951   59.67   1000

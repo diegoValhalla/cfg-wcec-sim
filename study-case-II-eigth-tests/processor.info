@@ -1,0 +1,33 @@
+Frequencies and voltages for the project from Intel XScale [1] took from [2].
+
+F (MHz) |   V
+150     |   0.75
+400     |   1
+600     |   1.3
+800     |   1.6
+1000    |   1.8
+
+Or Intel PXA270 [3] from [4]
+
+F (MHz) |   V
+104     |   0.9
+208     |   1.15
+312     |   1.25
+416     |   1.35
+520     |   1.45
+624     |   1.55
+
+
+[1] XSCALE. 2002. Intel XScale processors.
+http://developer.intel.com/design/intelxscale.
+
+[2] AbouGhazaleh, N., Mossé, D., Childers, B., Melhem, R., & Craven, M. (2003).
+Collaborative operating system and compiler power management for real-time
+applications. In 9th IEEE Real-Time and Embedded Technology and Applications
+Symposium (RTAS’03)
+
+[3] Intel. Intel xscale technology-basd embedded processor. Available as
+http://www.intel.com/design/embeddedpca/applicationsprocessors/302302.htm
+
+[4] EfficientDynamic Voltage/Frequency Scaling Through Algorithmic Loop
+Transformation
