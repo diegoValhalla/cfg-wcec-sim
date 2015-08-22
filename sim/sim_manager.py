@@ -155,14 +155,25 @@ class SimManager(object):
         self._random_path = False if path_name else True
         while True:
             # at this point, there is no preemption. Then, get task from ready
-            # queue whose call time is the smallest one
+            # queue whose call time is less than the (current sim time + task
+            # jitter time) and has the greatest priority. If there is not any
+            # task, so take the one with the smallest call time
             task_prio = -1
             call_time = -1
             for next_task_prio in self._ready_queue:
                 next_call_time = self._ready_queue[next_task_prio]
-                if call_time == -1 or next_call_time < call_time:
+                task = self._tasks_sims[next_task_prio][0]
+                if (next_call_time < self._sim_time + task.get_jitter() and (
+                        call_time == -1 or next_task_prio < task_prio)):
                     task_prio = next_task_prio
                     call_time = next_call_time
+            if task_prio == -1:
+                for next_task_prio in self._ready_queue:
+                    next_call_time = self._ready_queue[next_task_prio]
+                    task = self._tasks_sims[next_task_prio][0]
+                    if call_time == -1 or next_call_time < call_time:
+                        task_prio = next_task_prio
+                        call_time = next_call_time
             task = self._tasks_sims[task_prio][0]
             del self._ready_queue[task.get_priority()]
 
