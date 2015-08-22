@@ -142,7 +142,8 @@ class SimDVFS(object):
         self._start_time = start_time
         self._curfreq_st = start_time
 
-        if '-w' in result_file:
+        # to know if it is the worst frequency scenario
+        if 'wfreq' in result_file :
             self._curfreq = max(self._freqs_volt)
             self._newfreq = self._curfreq
 

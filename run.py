@@ -18,15 +18,15 @@ def run(config_file='sim.config'):
     set_simulation_config(simManager, config_file)
 
     # run simulation for worst, middle and approximated best paths
-    #simManager.run_sim('w', valentin=True, show_result='data/worst-w.csv')
+    #simManager.run_sim('w', valentin=True, show_result='data/worst-wfreq.csv')
     #simManager.run_sim('w', valentin=True, show_result='data/worst-v.csv')
     simManager.run_sim('w', valentin=False, show_result='data/worst-m.csv')
 
-    #simManager.run_sim('m', valentin=True, show_result='data/mid-w.csv')
+    #simManager.run_sim('m', valentin=True, show_result='data/mid-wfreq.csv')
     #simManager.run_sim('m', valentin=True, show_result='data/mid-v.csv')
     simManager.run_sim('m', valentin=False, show_result='data/mid-m.csv')
 
-    #simManager.run_sim('a', valentin=True, show_result='data/approx-w.csv')
+    #simManager.run_sim('a', valentin=True, show_result='data/approx-wfreq.csv')
     #simManager.run_sim('a', valentin=True, show_result='data/approx-v.csv')
     simManager.run_sim('a', valentin=False, show_result='data/approx-m.csv')
 

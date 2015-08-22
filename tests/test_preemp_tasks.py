@@ -18,6 +18,14 @@ class TestPreempTasks(unittest.TestCase):
                 results.
     """
 
+    def test_preemp_worst_case_wfreq(self):
+        test_name = self.test_preemp_worst_case_wfreq.__name__
+        result_ok = self._find_file(test_name + '.result')
+        result_check = self._find_file(test_name + '.check')
+
+        self._init_data()
+        self._run_test('w', True, result_check, result_ok)
+
     def test_preemp_worst_case_valentin(self):
         test_name = self.test_preemp_worst_case_valentin.__name__
         result_ok = self._find_file(test_name + '.result')
@@ -34,6 +42,14 @@ class TestPreempTasks(unittest.TestCase):
         self._init_data()
         self._run_test('w', False, result_check, result_ok)
 
+    def test_preemp_middle_case_wfreq(self):
+        test_name = self.test_preemp_middle_case_wfreq.__name__
+        result_ok = self._find_file(test_name + '.result')
+        result_check = self._find_file(test_name + '.check')
+
+        self._init_data()
+        self._run_test('m', True, result_check, result_ok)
+
     def test_preemp_middle_case_valentin(self):
         test_name = self.test_preemp_middle_case_valentin.__name__
         result_ok = self._find_file(test_name + '.result')
@@ -49,6 +65,14 @@ class TestPreempTasks(unittest.TestCase):
 
         self._init_data()
         self._run_test('m', False, result_check, result_ok)
+
+    def test_preemp_approx_best_case_wfreq(self):
+        test_name = self.test_preemp_approx_best_case_wfreq.__name__
+        result_ok = self._find_file(test_name + '.result')
+        result_check = self._find_file(test_name + '.check')
+
+        self._init_data()
+        self._run_test('a', True, result_check, result_ok)
 
     def test_preemp_approx_best_case_valentin(self):
         test_name = self.test_preemp_approx_best_case_valentin.__name__
