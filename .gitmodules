@@ -1,0 +1,3 @@
+[submodule "tools/cfg-wcec"]
+	path = tools/cfg-wcec
+	url = git@github.com:diegoValhalla/cfg-wcec.git
