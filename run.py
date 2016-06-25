@@ -1,6 +1,6 @@
 import os, sys
 
-sys.path.insert(0, '../src')
+sys.path.insert(0, './tools/cfg-wcec')
 
 from cfg import cfg
 from sim import cfg_paths, sim, sim_manager

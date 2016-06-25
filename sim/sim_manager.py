@@ -1,6 +1,6 @@
 import os, sys, math
 
-sys.path.insert(0, '../../src')
+sys.path.insert(0, '../tools/cfg-wcec')
 
 from random import randint
 from cfg_paths import CFGPaths

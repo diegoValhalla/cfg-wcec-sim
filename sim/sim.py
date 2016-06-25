@@ -1,7 +1,7 @@
 import os, sys, math
 from decimal import *
 
-sys.path.insert(0, '../../src')
+sys.path.insert(0, '../tools/cfg-wcec')
 
 from cfg_paths import CFGPath
 

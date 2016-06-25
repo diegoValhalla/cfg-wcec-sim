@@ -1,6 +1,6 @@
 import sys, math
 
-sys.path.insert(0, '../../src')
+sys.path.insert(0, '../tools/cfg-wcec')
 
 from cfg.cfg import CFG
 from cfg.cfg_nodes import CFGNodeType, CFGEntryNode, CFGNode
