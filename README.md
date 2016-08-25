@@ -48,5 +48,26 @@ $ autoreconf -i
 $ ./configure --bindir=/home/diego/projects/smartenum/bin
 $ make
 $ make install
+$
+$ echo '
+3 5 1
+1000 800 600 400 150
+1.8 1.6 1.3 1 0.75
+10707 30 0.4 0
+9563 40 0.4 0
+13951 60 0.4 0' > in
+$
+$ ./bin/se -s < in
+Sumário
+Número de Configurações:    125
+Configurações Avaliadas:    125
+Configurações Viáveis: 4
+Tempo de processamento: 0s and 448 us
+Melhor espalhamento 36.16 com as seguintes frequências
+(1000.00; 1.80) (800.00; 1.60) (1000.00; 1.80)
+Utilização total do sistema é  88.83%
+Energia gasta pelo sistema é 104373.20 x C
+Energia gasta pelo sistema é 110876.04 x C se usar apenas a maior frequência
+Redução de energia:   5.86%
 ```
 
