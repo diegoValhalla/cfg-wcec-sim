@@ -44,6 +44,8 @@ $ git clone git://repo.or.cz/smartenum.git
 $ cd smartenum
 $ sudo apt-get install autoconf automake
 $ sudo tar -xzf akaroa-2.7.13.tar.gz -C /opt/akaroa-2.7.13
+$ sed -i -e 's/usr\/local\/akaroa/opt\/akaroa-2\.7\.13/g' src/Makefile.am
+$ sed -i -r 's/if \(almostequal2s_complement\(Ip, Ipa, 1 << 22\)\)/if \(Ip <= Ipa \&\& Ip >= Ipa\)/g' src/analysis.c
 $ autoreconf -i
 $ ./configure --bindir=/home/diego/projects/smartenum/bin
 $ make
