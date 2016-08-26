@@ -13,6 +13,8 @@ def run(config_file='sim.config', study='wfreq', time_slice=20):
         Args:
             filename (string): name of C file
     """
+    print 'start', study
+
     # create simulation manager and set its configuration
     time_slice = float(time_slice)
     simManager = reset_config(config_file, time_slice)
@@ -44,6 +46,8 @@ def run(config_file='sim.config', study='wfreq', time_slice=20):
 
         simManager = reset_config(config_file, time_slice)
         simManager.run_sim('a', valentin=False, show_result='data/consumption-approx-m.csv')
+
+    print 'end', study
 
 def reset_config(config_file, time_slice):
     # create simulation manager and set its configuration
