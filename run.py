@@ -6,7 +6,7 @@ from cfg import cfg
 from sim import cfg_paths, sim, sim_manager
 
 
-def run(config_file='sim.config'):
+def run(config_file='sim.config', study='wfreq', time_slice=20):
     """ Run simulation by first getting the task CFG, then simulating path
         execution on the given C file.
 
@@ -14,21 +14,42 @@ def run(config_file='sim.config'):
             filename (string): name of C file
     """
     # create simulation manager and set its configuration
-    simManager = sim_manager.SimManager()
-    set_simulation_config(simManager, config_file)
+    time_slice = float(time_slice)
+    simManager = reset_config(config_file, time_slice)
 
     # run simulation for worst, middle and approximated best paths
-    #simManager.run_sim('w', valentin=True, show_result='data/worst-wfreq.csv')
-    #simManager.run_sim('w', valentin=True, show_result='data/worst-v.csv')
-    simManager.run_sim('w', valentin=False, show_result='data/worst-m.csv')
+    if study == 'wfreq': # sim.config wfreq
+        simManager.run_sim('w', valentin=True, show_result='data/consumption-worst-wfreq.csv')
 
-    #simManager.run_sim('m', valentin=True, show_result='data/mid-wfreq.csv')
-    #simManager.run_sim('m', valentin=True, show_result='data/mid-v.csv')
-    simManager.run_sim('m', valentin=False, show_result='data/mid-m.csv')
+        simManager = reset_config(config_file, time_slice)
+        simManager.run_sim('m', valentin=True, show_result='data/consumption-mid-wfreq.csv')
 
-    #simManager.run_sim('a', valentin=True, show_result='data/approx-wfreq.csv')
-    #simManager.run_sim('a', valentin=True, show_result='data/approx-v.csv')
-    simManager.run_sim('a', valentin=False, show_result='data/approx-m.csv')
+        simManager = reset_config(config_file, time_slice)
+        simManager.run_sim('a', valentin=True, show_result='data/consumption-approx-wfreq.csv')
+
+    elif study == 'valentin': # sim.config valentin
+        simManager.run_sim('w', valentin=True, show_result='data/consumption-worst-v.csv')
+
+        simManager = reset_config(config_file, time_slice)
+        simManager.run_sim('m', valentin=True, show_result='data/consumption-mid-v.csv')
+
+        simManager = reset_config(config_file, time_slice)
+        simManager.run_sim('a', valentin=True, show_result='data/consumption-approx-v.csv')
+
+    else: # sim-mine.config mine
+        simManager.run_sim('w', valentin=False, show_result='data/consumption-worst-m.csv')
+
+        simManager = reset_config(config_file, time_slice)
+        simManager.run_sim('m', valentin=False, show_result='data/consumption-mid-m.csv')
+
+        simManager = reset_config(config_file, time_slice)
+        simManager.run_sim('a', valentin=False, show_result='data/consumption-approx-m.csv')
+
+def reset_config(config_file, time_slice):
+    # create simulation manager and set its configuration
+    simManager = sim_manager.SimManager(time_slice)
+    set_simulation_config(simManager, config_file)
+    return simManager
 
 def set_simulation_config(simManager, config_file):
     """ Get task and environment information of a configuration file.
@@ -101,7 +122,7 @@ def _find_file(config_file, cfile):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 4:
         print 'Arguments not valid'
     else:
-        run(sys.argv[1])
+        run(sys.argv[1], sys.argv[2], sys.argv[3])

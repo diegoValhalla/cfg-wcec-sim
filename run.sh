@@ -1,14 +1,14 @@
 #! /bin/bash
 
-FILES="./study-case-one-function/*.c"
+if [ -d './data/' ]; then
+    rm data/*
+fi
 
-# iterates over C files
-for f in $FILES
-do
-    echo "Running simulation in: $f"
+#(time -p python run.py ./study-case-I-three-tests/sim.config wfreq 20)
+#(time -p python run.py ./study-case-I-three-tests/sim.config valentin 20)
+python run.py ./study-case-I-three-tests/sim-mine.config mine 20
 
-    # remove file extension and append .out
-    outfile="${f%.*}.out"
-    (time -p python run.py $f) > $outfile 2>&1
-done
+#(time -p python run.py ./study-case-II-eight-tests/sim.config wfreq 50000)
+#(time -p python run.py ./study-case-II-eight-tests/sim.config valentin 50000)
+#(time -p python run.py ./study-case-II-eight-tests/sim-mine.config mine 50000)
 

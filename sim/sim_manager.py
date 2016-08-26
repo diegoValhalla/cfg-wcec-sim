@@ -30,7 +30,7 @@ class SimManager(object):
             first_time (boolean): flag to know when ends the first execution of
                 a random path
     """
-    def __init__(self):
+    def __init__(self, time_slice=20):
         self._tasks_sims = {}
         self._ready_queue = {}
         self._priority_count = 0
@@ -39,8 +39,8 @@ class SimManager(object):
         self._first_time = True
         self._path_list = []
         self._path_idx = 0
-        self._time_slice = 20 # for study case I
-        #self._time_slice = 50000 # for study case II
+        self._time_slice = time_slice # slices of time that simulation data
+                                      # must be collected
         self._collect_time = self._time_slice
         self._sim_time_for_result = 0
         self._acc_energy_consumed = 0
@@ -126,9 +126,8 @@ class SimManager(object):
         """
         # check if the current file exist, if so, remove it
         try:
-            with open(show_result, 'rU') as f:
-                pass
-            os.remove(show_result)
+            with open(show_result, 'a') as f:
+                f.write('0,0,0\n')
         except IOError as e:
             pass # file does not exist
 
@@ -441,9 +440,8 @@ class SimManager(object):
         return self._handle_task
 
     def print_graph_data_to_csv(self, csv):
-        pass
-        #if self._filename:
-            #with open(self._filename, 'a') as dataLog:
-                #dataLog.write(csv)
-        #else:
-            #print csv
+        if self._filename:
+            with open(self._filename, 'a') as dataLog:
+                dataLog.write(csv)
+        else:
+            print csv

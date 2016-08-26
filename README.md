@@ -19,11 +19,23 @@ $ python run.py study-case-I-three-tests/sim.config
 $ python run.py study-case-I-three-tests/sim-mine.config
 ```
 
+or change 'run.sh' and do:
+
+```bash
+$ ./run.sh
+```
+
 ### Study Case II
 
 ```bash
 $ python run.py study-case-II-eight-tests/sim.config
 $ python run.py study-case-II-eight-tests/sim-mine.config
+```
+
+or change 'run.sh' and do:
+
+```bash
+$ ./run.sh
 ```
 
 ## Tools

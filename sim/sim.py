@@ -1,4 +1,4 @@
-import os, sys, math
+import os, sys, math, re
 from decimal import *
 
 sys.path.insert(0, '../tools/cfg-wcec')
@@ -418,9 +418,10 @@ class SimDVFS(object):
         """
 
         # check if the current file exist, if so, do not write header
+        filename = re.sub(r'data/', 'data/detailed-', result_file)
         csv = ''
         try:
-            with open(result_file, 'rU') as dataLog:
+            with open(filename, 'rU') as dataLog:
                 pass
         except IOError as e: # file does not exist, then write header
             csv += 'Idea,Path,WCEC,PEC,PECO,Consumption,Reduction,Jitter,Call'
@@ -489,10 +490,8 @@ class SimDVFS(object):
         }
         csv += '\n'
 
-        if result_file:
-            # append information
-            with open(result_file, 'a') as dataLog:
-                dataLog.write(csv)
+        with open(filename, 'a') as dataLog:
+            dataLog.write(csv)
 
     def write_end_time(self, valentin, path_name, result_file):
         if '-w' in result_file:
@@ -510,7 +509,7 @@ class SimDVFS(object):
         else:
             filename = 'data/end-time-approx.csv'
 
-        #print csv
-        #append information
-        #with open(filename, 'a') as dataLog:
-            #dataLog.write(csv)
+        # print csv
+        # append information
+        with open(filename, 'a') as dataLog:
+            dataLog.write(csv)
