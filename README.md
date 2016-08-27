@@ -16,9 +16,9 @@ $ bash setup.sh
 ### Study Case I
 
 ```bash
-$ python run.py study-case-I-three-tests/sim.config wfreq 20 ./study-case-I/results
-$ python run.py study-case-I-three-tests/sim.config valentin 20 ./study-case-I/results
-$ python run.py study-case-I-three-tests/sim-mine.config mine 20 ./study-case-I/results
+$ python run.py study-case-I/sim.config wfreq 20 ./study-case-I/results
+$ python run.py study-case-I/sim.config valentin 20 ./study-case-I/results
+$ python run.py study-case-I/sim-mine.config mine 20 ./study-case-I/results
 $ bash ./study-case-I/gnuplot/run.sh # generate graphs
 ```
 
@@ -27,15 +27,13 @@ or simply do '$ bash run.sh' that encapsulate all that commands.
 ### Study Case II
 
 ```bash
-$ python run.py study-case-II-eight-tests/sim.config
-$ python run.py study-case-II-eight-tests/sim-mine.config
+$ python run.py study-case-II/sim.config wfreq 50000 ./study-case-II/results
+$ python run.py study-case-II/sim.config valenting 50000 ./study-case-II/results
+$ python run.py study-case-II/sim-mine.config mine 50000 ./study-case-II/results
+$ bash ./study-case-II/gnuplot/run.sh # generate graphs
 ```
 
-or change 'run.sh' and do:
-
-```bash
-$ ./run.sh
-```
+or simply do '$ bash run.sh' that encapsulate all that commands.
 
 ## Tools
 
