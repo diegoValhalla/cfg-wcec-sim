@@ -1,6 +1,10 @@
 cfg-wcec-sim
 ============
 
+## Dependency
+
+* python 2.7.6
+
 ## Install
 
 ```bash
@@ -9,21 +13,16 @@ $ bash setup.sh
 
 ## Run
 
-Each execution result is stored in 'data/' directory with the same file name.
-So, in each running, you should change file name to avoid overwrite data.
-
 ### Study Case I
 
 ```bash
-$ python run.py study-case-I-three-tests/sim.config
-$ python run.py study-case-I-three-tests/sim-mine.config
+$ python run.py study-case-I-three-tests/sim.config wfreq 20 ./study-case-I/results
+$ python run.py study-case-I-three-tests/sim.config valentin 20 ./study-case-I/results
+$ python run.py study-case-I-three-tests/sim-mine.config mine 20 ./study-case-I/results
+$ bash ./study-case-I/gnuplot/run.sh # generate graphs
 ```
 
-or change 'run.sh' and do:
-
-```bash
-$ ./run.sh
-```
+or simply do '$ bash run.sh' that encapsulate all that commands.
 
 ### Study Case II
 
