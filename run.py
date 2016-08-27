@@ -6,7 +6,8 @@ from cfg import cfg
 from sim import cfg_paths, sim, sim_manager
 
 
-def run(config_file='sim.config', study='wfreq', time_slice=20):
+def run(config_file='sim.config', study='wfreq', time_slice=20,
+        result_file_path=''):
     """ Run simulation by first getting the task CFG, then simulating path
         execution on the given C file.
 
@@ -21,31 +22,40 @@ def run(config_file='sim.config', study='wfreq', time_slice=20):
 
     # run simulation for worst, middle and approximated best paths
     if study == 'wfreq': # sim.config wfreq
-        simManager.run_sim('w', valentin=True, show_result='data/consumption-worst-wfreq.csv')
+        result_file = result_file_path + '/consumption-worst-wfreq.csv'
+        simManager.run_sim('w', valentin=True, show_result=result_file)
 
+        result_file = result_file_path + '/consumption-mid-wfreq.csv'
         simManager = reset_config(config_file, time_slice)
-        simManager.run_sim('m', valentin=True, show_result='data/consumption-mid-wfreq.csv')
+        simManager.run_sim('m', valentin=True, show_result=result_file)
 
+        result_file = result_file_path + '/consumption-approx-wfreq.csv'
         simManager = reset_config(config_file, time_slice)
-        simManager.run_sim('a', valentin=True, show_result='data/consumption-approx-wfreq.csv')
+        simManager.run_sim('a', valentin=True, show_result=result_file)
 
     elif study == 'valentin': # sim.config valentin
-        simManager.run_sim('w', valentin=True, show_result='data/consumption-worst-v.csv')
+        result_file = result_file_path + '/consumption-worst-v.csv'
+        simManager.run_sim('w', valentin=True, show_result=result_file)
 
+        result_file = result_file_path + '/consumption-mid-v.csv'
         simManager = reset_config(config_file, time_slice)
-        simManager.run_sim('m', valentin=True, show_result='data/consumption-mid-v.csv')
+        simManager.run_sim('m', valentin=True, show_result=result_file)
 
+        result_file = result_file_path + '/consumption-approx-v.csv'
         simManager = reset_config(config_file, time_slice)
-        simManager.run_sim('a', valentin=True, show_result='data/consumption-approx-v.csv')
+        simManager.run_sim('a', valentin=True, show_result=result_file)
 
     else: # sim-mine.config mine
-        simManager.run_sim('w', valentin=False, show_result='data/consumption-worst-m.csv')
+        result_file = result_file_path + '/consumption-worst-m.csv'
+        simManager.run_sim('w', valentin=False, show_result=result_file)
 
+        result_file = result_file_path + '/consumption-mid-m.csv'
         simManager = reset_config(config_file, time_slice)
-        simManager.run_sim('m', valentin=False, show_result='data/consumption-mid-m.csv')
+        simManager.run_sim('m', valentin=False, show_result=result_file)
 
+        result_file = result_file_path + '/consumption-approx-m.csv'
         simManager = reset_config(config_file, time_slice)
-        simManager.run_sim('a', valentin=False, show_result='data/consumption-approx-m.csv')
+        simManager.run_sim('a', valentin=False, show_result=result_file)
 
     print 'end', study
 
@@ -126,7 +136,7 @@ def _find_file(config_file, cfile):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print 'Arguments not valid'
     else:
-        run(sys.argv[1], sys.argv[2], sys.argv[3])
+        run(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])

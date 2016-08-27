@@ -418,7 +418,8 @@ class SimDVFS(object):
         """
 
         # check if the current file exist, if so, do not write header
-        filename = re.sub(r'data/', 'data/detailed-', result_file)
+        filename = os.path.dirname(result_file) + '/detailed-' + \
+                os.path.basename(result_file)
         csv = ''
         try:
             with open(filename, 'rU') as dataLog:
@@ -494,22 +495,24 @@ class SimDVFS(object):
             dataLog.write(csv)
 
     def write_end_time(self, valentin, path_name, result_file):
-        if '-w' in result_file:
+        if '-wfreq.csv' in result_file:
             csv = '0,Pior Caso'
-        elif '-v' in result_file:
+        elif '-v.csv' in result_file:
             csv = '1,Valentin'
         else:
             csv = '2,Proposta'
         csv += ',%.2f\n' % (self.get_end_time())
 
+        filename = os.path.dirname(result_file)
         if path_name == 'w':
-            filename = 'data/end-time-worst.csv'
+            filename = filename + '/end-time-worst.csv'
         elif path_name == 'm':
-            filename = 'data/end-time-mid.csv'
+            filename = filename + '/end-time-mid.csv'
         else:
-            filename = 'data/end-time-approx.csv'
+            filename = filename + '/end-time-approx.csv'
 
         # print csv
         # append information
         with open(filename, 'a') as dataLog:
             dataLog.write(csv)
+
