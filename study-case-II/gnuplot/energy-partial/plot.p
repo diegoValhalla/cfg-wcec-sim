@@ -11,8 +11,8 @@ set datafile separator ","
 
 # x-axes settings
 set xlabel 'Tempo de Simulação ($10^3$ s)'
-set xrange [0:550000]
-set xtics 0,50000 nomirror autojustify
+set xrange [0:9900000]
+set xtics 0,400000 nomirror autojustify
 set format x "%.0s"
 
 # y-axes common settings
@@ -33,8 +33,8 @@ set style line 1 lc rgb 'blue' linetype 1 linewidth 1 pt 3
 
 # ==== WORST CASE ====
 
-set yrange [50:1250]
-set ytics 100,150 nomirror autojustify
+set yrange [1000:25000]
+set ytics 2000,1000 nomirror autojustify
 
 set output "./images/s2-partial-worst-wfreq.tex"
 plot './../../results/consumption-worst-wfreq.csv'\
@@ -60,8 +60,8 @@ plot './../../results/consumption-worst-v.csv'\
 
 # ==== MIDDLE CASE ====
 
-set yrange [0:700]
-set ytics 50,100 nomirror autojustify
+set yrange [0:15000]
+set ytics 500,1000 nomirror autojustify
 
 set output "./images/s2-partial-mid-wfreq.tex"
 plot './../../results/consumption-mid-wfreq.csv'\
@@ -87,8 +87,8 @@ plot './../../results/consumption-mid-v.csv'\
 
 # ==== APPROX BEST CASE ====
 
-set yrange [0:185]
-set ytics 10,20 nomirror autojustify
+set yrange [0:3800]
+set ytics 100,200 nomirror autojustify
 
 set output "./images/s2-partial-approx-wfreq.tex"
 plot './../../results/consumption-approx-wfreq.csv'\

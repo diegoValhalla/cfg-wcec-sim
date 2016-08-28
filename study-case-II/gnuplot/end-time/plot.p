@@ -32,8 +32,8 @@ set datafile separator ","
 
 # ==== WORST CASE ====
 
-set yrange [503500:504000] noreverse nowriteback
-set ytics 503500,50
+set yrange [9575500:9576000] noreverse nowriteback
+set ytics 9575500,50
 set output "images/s2-end-time-worst.tex"
 plot\
     '../../results/end-time-worst.csv' using 1:3:(mycolor($0)):xtic(2) with boxes\
@@ -43,8 +43,8 @@ plot\
 
 # ==== MIDDLE CASE ====
 
-set yrange [503700:503750] noreverse nowriteback
-set ytics 503700,5
+set yrange [9575700:9575750] noreverse nowriteback
+set ytics 9575700,5
 set output "images/s2-end-time-mid.tex"
 plot\
     '../../results/end-time-mid.csv' using 1:3:(mycolor($0)):xtic(2) with boxes\
@@ -54,8 +54,8 @@ plot\
 
 # ==== APPROX BEST CASE ====
 
-set ytics 503700,1
-set yrange [503700:503710] noreverse nowriteback
+set yrange [9575700:9575710] noreverse nowriteback
+set ytics 9575700,1
 set output "images/s2-end-time-approx.tex"
 plot\
     '../../results/end-time-approx.csv' using 1:3:(mycolor($0)):xtic(2) with boxes\
