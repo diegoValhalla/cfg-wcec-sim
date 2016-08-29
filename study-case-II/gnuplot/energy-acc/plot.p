@@ -5,21 +5,25 @@ clear
 reset
 
 set term epslatex font ",10" color colortext
+#set term png
 
 # input file settings
 set datafile separator ","
 
 # x-axes settings
-set xlabel 'Tempo de Simulação ($10^3$ s)'
-set xrange [0:9900000]
-set xtics 0,400000 nomirror autojustify
-set format x "%.0s"
+set xlabel "Simulation time ($10^3$s)"
+set xrange [0:9900]
+set xtics 0,1980 nomirror autojustify
+#set format x "%.0s"
 
 # y-axes common settings
-set ylabel 'Energia Consumida ($10^6$ J)'
+set ylabel 'Normalized energy consumption'
+#set yrange [0:1.0.5]
+set ytics 0,0.1 nomirror autojustify
 
-# since y-values are big
-divide(i) = (i / 1000000)
+# common function
+normalization(i) = ((i - range_min) / (range_max - range_min))
+divide(i) = (i / 1000)
 
 # legend position
 set key left
@@ -31,41 +35,44 @@ set style line 3 lc rgb 'blue' linetype 1 linewidth 1
 
 # ==== WORST CASE ====
 
-set yrange [1000:25000]
-set ytics 2000,1000 nomirror autojustify
-
+stats '../../results/consumption-worst-wfreq.csv' using 3 name "range" nooutput
+set yrange [0:1.05]
+#set output "images/s2-energy-acc-worst.png"
 set output "images/s2-energy-acc-worst.tex"
 plot '../../results/consumption-worst-wfreq.csv'\
-        using 1:(divide($3)) with lines ls 1 ti 'Pior Caso',\
+        using (divide($1)):(normalization($3)) with lines ls 1 ti 'Worst Case',\
     '../../results/consumption-worst-v.csv'\
-        using 1:(divide($3)) with lines ls 2 ti 'Valentin',\
+        using (divide($1)):(normalization($3)) with lines ls 2 ti 'Valentin',\
     '../../results/consumption-worst-m.csv'\
-        using 1:(divide($3)) with lines ls 3 ti 'Proposta'
+        using (divide($1)):(normalization($3)) with lines ls 3 ti 'Proposal'
+# due to 'stats' command, yrange must be reinitialize after each plot
+set yrange [*:*]
 
 
 # ==== MIDDLE CASE ====
 
-set yrange [0:15000]
-set ytics 500,1000 nomirror autojustify
-
+stats '../../results/consumption-mid-wfreq.csv' using 3 name "range" nooutput
+set yrange [0:1.05]
 set output "images/s2-energy-acc-mid.tex"
 plot '../../results/consumption-mid-wfreq.csv'\
-        using 1:(divide($3)) with lines ls 1 ti 'Pior Caso',\
+        using (divide($1)):(normalization($3)) with lines ls 1 ti 'Worst Case',\
     '../../results/consumption-mid-v.csv'\
-        using 1:(divide($3)) with lines ls 2 ti 'Valentin',\
+        using (divide($1)):(normalization($3)) with lines ls 2 ti 'Valentin',\
     '../../results/consumption-mid-m.csv'\
-        using 1:(divide($3)) with lines ls 3 ti 'Proposta'
+        using (divide($1)):(normalization($3)) with lines ls 3 ti 'Proposal'
+# due to 'stats' command, yrange must be reinitialize after each plot
+set yrange [*:*]
 
 
 # ==== APPROX BEST CASE ====
 
-set yrange [0:3800]
-set ytics 100,200 nomirror autojustify
-
+stats '../../results/consumption-approx-wfreq.csv' using 3 name "range" nooutput
+set yrange [0:1.05]
 set output "images/s2-energy-acc-approx.tex"
 plot '../../results/consumption-approx-wfreq.csv'\
-        using 1:(divide($3)) with lines ls 1 ti 'Pior Caso',\
+        using (divide($1)):(normalization($3)) with lines ls 1 ti 'Worst Case',\
     '../../results/consumption-approx-v.csv'\
-        using 1:(divide($3)) with lines ls 2 ti 'Valentin',\
+        using (divide($1)):(normalization($3)) with lines ls 2 ti 'Valentin',\
     '../../results/consumption-approx-m.csv'\
-        using 1:(divide($3)) with lines ls 3 ti 'Proposta'
+        using (divide($1)):(normalization($3)) with lines ls 3 ti 'Proposal'
+
