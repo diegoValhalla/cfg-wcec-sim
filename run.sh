@@ -12,7 +12,7 @@ fi
 
 #(time -p python run.py ./study-case-I/sim.config wfreq 20 ./study-case-I/results)
 #(time -p python run.py ./study-case-I/sim.config valentin 20 ./study-case-I/results)
-(time -p python run.py ./study-case-I/sim-mine.config mine 20 ./study-case-I/results)
+#(time -p python run.py ./study-case-I/sim-mine.config mine 20 ./study-case-I/results)
 #bash ./study-case-I/gnuplot/run.sh
 
 if [ -d './study-case-II/results/' ]; then
@@ -31,8 +31,21 @@ fi
 #(time -p python run.py ./study-case-II/sim-mine.config mine 870545 ./study-case-II/results)
 #bash ./study-case-II/gnuplot/run.sh
 
-#(time -p python run.py ./study-case-II/sim2.config wfreq 18000 ./study-case-II/results)
-#(time -p python run.py ./study-case-II/sim2.config valentin 18000 ./study-case-II/results)
-#(time -p python run.py ./study-case-II/sim-mine2.config mine 18000 ./study-case-II/results)
+# LCM 9576000, 532 slice time on each 18000
+#(time -p python run.py ./study-case-II/sim.config wfreq 18000 ./study-case-II/results)
+#(time -p python run.py ./study-case-II/sim.config valentin 18000 ./study-case-II/results)
+#(time -p python run.py ./study-case-II/sim-mine.config mine 18000 ./study-case-II/results)
 #bash ./study-case-II/gnuplot/run.sh
+
+# old results - LCM 504000, 11 slice times on each 50000
+#(time -p python run.py ./study-case-II/sim-mestrado-mhz.config wfreq 50000 ./study-case-II/results)
+#(time -p python run.py ./study-case-II/sim-mestrado-mhz.config valentin 50000 ./study-case-II/results)
+#(time -p python run.py ./study-case-II/sim-mine-mestrado-mhz.config mine 50000 ./study-case-II/results)
+#bash ./study-case-II/gnuplot/run.sh
+
+# old results - LCM 504000, 100 slice times on each 5040
+(time -p python run.py ./study-case-II/sim-mestrado-mhz-ms.config wfreq 5040 ./study-case-II/results)
+(time -p python run.py ./study-case-II/sim-mestrado-mhz-ms.config valentin 5040 ./study-case-II/results)
+(time -p python run.py ./study-case-II/sim-mine-mestrado-mhz-ms.config mine 5040 ./study-case-II/results)
+bash ./study-case-II/gnuplot/run.sh
 

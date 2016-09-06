@@ -82,3 +82,9 @@ Energia gasta pelo sistema é 110876.04 x C se usar apenas a maior frequência
 Redução de energia:   5.86%
 ```
 
+1 - run config in smartenum and check if task model is schedulable
+2 - get response time of each task
+3 - get the optimum frequency of each task
+4 - use the response time, deadline, jitter and optimum frequency as input for
+the simulation
+5 - run the simulation and plot the graphs. The consumed energy is normalized.

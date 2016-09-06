@@ -55,7 +55,7 @@ class SimDVFS(object):
     """
     def __init__(
             self, wcec, priority=0, deadline=0, period=0, jitter=0,
-            init_freq=0, freqs_volt={}, overheadB=100, overheadL=100):
+            init_freq=0, freqs_volt={}, overheadB=20000, overheadL=20000):
         self._wcec = wcec
         self._priority = priority
         self._deadline = deadline
@@ -211,6 +211,7 @@ class SimDVFS(object):
                     path_name, result_file, cfg_path.get_path_rwcec(),
                     self._freq_cycles_consumed, valentin)
 
+        #print self._start_time, self._call_time, self._total_run_time
         return self._freq_cycles_consumed
 
     def _check_typeB_edge(self, n, child):
@@ -358,6 +359,7 @@ class SimDVFS(object):
             self._freq_cycles_consumed.append(data)
             self._total_run_time += freq_time_spent
             self._curfreq_st = self._start_time + self._total_run_time
+            #print cycles_consumed, curfreq, freq_time_spent, self._total_run_time
         self._curfreq = newfreq
         self._cpc_consumed = 0
 

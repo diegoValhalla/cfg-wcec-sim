@@ -12,8 +12,8 @@ set datafile separator ","
 
 # x-axes settings
 set xlabel "Simulation time ($10^3$s)"
-set xrange [0:9900]
-set xtics 0,1980 nomirror autojustify
+set xrange [0:510]
+set xtics 0,50 nomirror autojustify
 #set format x "%.0s"
 
 # y-axes common settings
