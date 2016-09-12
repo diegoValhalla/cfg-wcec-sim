@@ -11,7 +11,7 @@ set term epslatex font ",10" color colortext
 set datafile separator ","
 
 # x-axes settings
-set xlabel "Simulation time ($10^3$s)"
+set xlabel "Simulation time (ms)"
 set xrange [0:510]
 set xtics 0,50 nomirror autojustify
 #set format x "%.0s"
@@ -23,7 +23,7 @@ set ytics 0,0.1 nomirror autojustify
 
 # common function
 normalization(i) = ((i - range_min) / (range_max - range_min))
-divide(i) = (i / 1000)
+divide(i) = (i / 1)
 
 # legend position
 set key left
@@ -40,11 +40,11 @@ set yrange [0:1.05]
 #set output "images/s2-energy-acc-worst.png"
 set output "images/s2-energy-acc-worst.tex"
 plot '../../results/consumption-worst-wfreq.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 1 ti 'Worst Case',\
+        using (divide($1)):(normalization($3)) with lines lt 21 ti 'Worst Case',\
     '../../results/consumption-worst-v.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 2 ti 'Valentin',\
+        using (divide($1)):(normalization($3)) with lines lt 0 ti 'Valentin',\
     '../../results/consumption-worst-m.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 3 ti 'Proposal'
+        using (divide($1)):(normalization($3)) with lines lt 17 ti 'Proposal'
 # due to 'stats' command, yrange must be reinitialize after each plot
 set yrange [*:*]
 
@@ -55,11 +55,11 @@ stats '../../results/consumption-mid-wfreq.csv' using 3 name "range" nooutput
 set yrange [0:1.05]
 set output "images/s2-energy-acc-mid.tex"
 plot '../../results/consumption-mid-wfreq.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 1 ti 'Worst Case',\
+        using (divide($1)):(normalization($3)) with lines lt 21 ti 'Worst Case',\
     '../../results/consumption-mid-v.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 2 ti 'Valentin',\
+        using (divide($1)):(normalization($3)) with lines lt 0 ti 'Valentin',\
     '../../results/consumption-mid-m.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 3 ti 'Proposal'
+        using (divide($1)):(normalization($3)) with lines lt 17 ti 'Proposal'
 # due to 'stats' command, yrange must be reinitialize after each plot
 set yrange [*:*]
 
@@ -70,9 +70,9 @@ stats '../../results/consumption-approx-wfreq.csv' using 3 name "range" nooutput
 set yrange [0:1.05]
 set output "images/s2-energy-acc-approx.tex"
 plot '../../results/consumption-approx-wfreq.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 1 ti 'Worst Case',\
+        using (divide($1)):(normalization($3)) with lines lt 21 ti 'Worst Case',\
     '../../results/consumption-approx-v.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 2 ti 'Valentin',\
+        using (divide($1)):(normalization($3)) with lines lt 0 ti 'Valentin',\
     '../../results/consumption-approx-m.csv'\
-        using (divide($1)):(normalization($3)) with lines ls 3 ti 'Proposal'
+        using (divide($1)):(normalization($3)) with lines lt 17 ti 'Proposal'
 

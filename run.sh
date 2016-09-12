@@ -43,9 +43,9 @@ fi
 #(time -p python run.py ./study-case-II/sim-mine-mestrado-mhz.config mine 50000 ./study-case-II/results)
 #bash ./study-case-II/gnuplot/run.sh
 
-# old results - LCM 504000, 100 slice times on each 5040
-(time -p python run.py ./study-case-II/sim-mestrado-mhz-ms.config wfreq 5040 ./study-case-II/results)
-(time -p python run.py ./study-case-II/sim-mestrado-mhz-ms.config valentin 5040 ./study-case-II/results)
-(time -p python run.py ./study-case-II/sim-mine-mestrado-mhz-ms.config mine 5040 ./study-case-II/results)
+# old results - LCM 504, 126 slice times on each 4
+(time -p python run.py ./study-case-II/sim-mestrado-mhz-ms.config wfreq 4 ./study-case-II/results)
+(time -p python run.py ./study-case-II/sim-mestrado-mhz-ms.config valentin 4 ./study-case-II/results)
+(time -p python run.py ./study-case-II/sim-mine-mestrado-mhz-ms.config mine 4 ./study-case-II/results)
 bash ./study-case-II/gnuplot/run.sh
 

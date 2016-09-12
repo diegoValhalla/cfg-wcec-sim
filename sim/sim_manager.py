@@ -149,7 +149,8 @@ class SimManager(object):
             deadlines.append(task.get_period())
 
         # set stop constraint to LCM of tasks' dealines
-        stop_time = self._lcm(deadlines)
+        #stop_time = self._lcm(deadlines)
+        stop_time = 504
 
         self._random_path = False if path_name else True
         while True:
