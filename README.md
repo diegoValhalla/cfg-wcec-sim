@@ -53,6 +53,11 @@ $ git clone git://repo.or.cz/smartenum.git
 $ cd smartenum
 $ sudo apt-get install autoconf automake
 $ sudo tar -xzf akaroa-2.7.13.tar.gz -C /opt/akaroa-2.7.13
+$ cd /opt/akaroa-2.7.13
+$ sudo ./configure --bindir=/opt/akaroa-2.7.13
+$ sudo make
+$ sudo make install
+$ # cd smartenum/
 $ sed -i -e 's/usr\/local\/akaroa/opt\/akaroa-2\.7\.13/g' src/Makefile.am
 $ sed -i -r 's/if \(almostequal2s_complement\(Ip, Ipa, 1 << 22\)\)/if \(Ip <= Ipa \&\& Ip >= Ipa\)/g' src/analysis.c
 $ autoreconf -i
