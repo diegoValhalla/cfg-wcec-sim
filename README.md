@@ -93,3 +93,13 @@ Redução de energia:   5.86%
 4 - use the response time, deadline, jitter and optimum frequency as input for
 the simulation
 5 - run the simulation and plot the graphs. The consumed energy is normalized.
+
+### CGO-16
+
+To properly run CGO-16 study case, change line 267 of
+tools/cfg-wcec/cfg/cfg\_wcec.py:
+
+```bash
+n.set_wcec(wcec) -> n.set_wcec(wcec * (10**3))
+```
+
